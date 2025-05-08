@@ -45,6 +45,23 @@ const I = [
 
 const blockTypes = [Z, T, O, L, I];
 
+const randomBlock = () => {
+  const randomIndex = Math.floor(Math.random() * blockTypes.length);
+  return blockTypes[randomIndex];
+}
+
+const randomPosition = () => {
+  const x = Math.floor(Math.random() * (width - 10)); // Adjust the range based on your design
+  const y = Math.floor(Math.random() * (height - 50)); // Adjust the range based on your design
+  return { x, y };
+};
+
+const randomBlockPosition = () => {
+  const block = randomBlock();
+  const position = randomPosition();
+  return { block, position };
+};
+
 export default function HomeScreen() {
   const isPortrait = height > width;
   const isLandscape = width > height;
@@ -68,6 +85,16 @@ export default function HomeScreen() {
             <Text>Playground</Text>
 
             {/* Random block drop to the random position */}
+            <View
+              style={{
+                position: "absolute",
+                top: randomBlockPosition().position.y,
+                left: randomBlockPosition().position.x,
+              }}>
+              <BlockList
+                blockTypes={[randomBlockPosition().block]}
+                isReversed={false} />
+              </View>
           </View>
 
           {/* Score and record section */}
@@ -205,7 +232,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
   },
   mainPlayerYard: {
-    width: "78%", // 78% + 10% each for blockList = 98% = width of the main Player section
+    width: "80%", // 78% + 10% each for blockList = 98% = width of the main Player section
     backgroundColor: "#E0E0E0",
     borderColor: "#000",
     borderWidth: 3,
@@ -226,7 +253,7 @@ const styles = StyleSheet.create({
   },
   controlArea: {
     width: "97%",
-    height: "35%",
+    height: "35%",  // 65% (main player section) + 35% (control area): 
     backgroundColor: "#87CEEB",
     borderRadius: 5,
     flexDirection: "row",
@@ -236,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#23CEEB",
   },
   playground: {
-    width: "70%",
+    width: "70%",  // 70% (playground) + 30% (score): width * 80% *70% = 56% width of the window
     height: "100%",
     backgroundColor: "#F0F0E0",
     borderRadius: 3,
