@@ -172,9 +172,9 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.button}>
             <Text>Down</Text>
           </TouchableOpacity>
-        </View>{" "}
+        </View>
         {/* Close Arrow Area */}
-      </View>{" "}
+      </View>
       {/* Close Control Area */}
     </SafeAreaView>
   );
