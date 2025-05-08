@@ -1,75 +1,313 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import AntDesign from "@expo/vector-icons/AntDesign";
+import React from "react";
+import {
+  Dimensions,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import BlockList from "../../components/block-list";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width, height } = Dimensions.get("window");
+
+const Z = [
+  [0, 1],
+  [1, 1],
+  [1, 0],
+];
+
+const T = [
+  [1, 0],
+  [1, 1],
+  [1, 0],
+];
+
+const O = [
+  [1, 1],
+  [1, 1],
+  //[null, null]
+];
+const L = [
+  [1, 0],
+  [1, 0],
+  [1, 1],
+];
+
+const I = [
+  [1, 0],
+  [1, 0],
+  [1, 0],
+  [1, 0],
+];
+
+const blockTypes = [Z, T, O, L, I];
 
 export default function HomeScreen() {
+  const isPortrait = height > width;
+  const isLandscape = width > height;
+  const isSmallDevice = width < 375; // Adjust this value based on your design requirements
+  const isLargeDevice = width > 600; // Adjust this value based on your design requirements
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      {/* Heading */}
+      <Text style={styles.heading}>Block Game</Text>
+      {/* Main player section */}
+      <View style={styles.mainPlayerSection}>
+        {/* Block types: not Reversed */}
+        <View style={styles.blockList}>
+          <BlockList blockTypes={blockTypes} isReversed={false} />
+        </View>
+
+        {/* Play Yard  with score section */}
+        <View style={styles.mainPlayerYard}>
+          {/* Playground */}
+          <View style={styles.playground}>
+            <Text>Playground</Text>
+
+            {/* Random block drop to the random position */}
+          </View>
+
+          {/* Score and record section */}
+          <View style={styles.scoreRecord}>
+            <Text>Score</Text>
+            <Text>Record</Text>
+          </View>
+        </View>
+
+        {/* Block types: is Reversed*/}
+        <View style={styles.blockList}>
+          <BlockList blockTypes={blockTypes} isReversed={true} />
+        </View>
+      </View>
+      {/*  Divider */}
+      <View style={styles.divider} />
+      {/* Control section */}
+      <View style={styles.controlArea}>
+        {/* Setting: Pause, Sound, Reset */}
+        <View style={styles.settingArea}>
+          <TouchableOpacity style={styles.secondaryButton}>
+            <Text>Pause</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryButton}>
+            <Text>Sound</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.secondaryButton, styles.reset]}>
+            <Text>Reset</Text>
+          </TouchableOpacity>
+        </View>
+        {/* Up down Arrow & Rotate control */}
+        <View style={styles.arrowArea}>
+          {/* First row */}
+          <TouchableOpacity style={styles.button}>
+            <Text>Rotate</Text>
+          </TouchableOpacity>
+
+          {/* Second row: Left - icons - Right */}
+          <View
+            style={{
+              flexDirection: "row",
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            {/* Left */}
+            <TouchableOpacity
+              style={{
+                height: "60%",
+                width: "30%",
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#FFDD00",
+                borderRadius: 60,
+              }}
+            >
+              <Text>Left</Text>
+            </TouchableOpacity>
+
+            {/* Icon */}
+            <View
+              style={{
+                width: "40%",
+                backgroundColor: "#D3D3D3",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <AntDesign name="caretup" size={24} color="black" />
+              <View
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: "25%",
+                }}
+              >
+                <AntDesign name="caretleft" size={24} color="black" />
+                <AntDesign name="caretright" size={24} color="black" />
+              </View>
+              <AntDesign name="caretdown" size={24} color="black" />
+            </View>
+
+            {/* Right */}
+            <TouchableOpacity
+              style={{
+                height: "60%",
+                width: "30%",
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#FFDD00",
+                borderRadius: 60,
+              }}
+            >
+              <Text>Right</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Third row: Down */}
+          <TouchableOpacity style={styles.button}>
+            <Text>Down</Text>
+          </TouchableOpacity>
+        </View>{" "}
+        {/* Close Arrow Area */}
+      </View>{" "}
+      {/* Close Control Area */}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#87CEEB",
+    paddingTop: Platform.OS === "ios" ? height : 0,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  heading: {
+    justifyContent: "center",
+    alignItems: "center",
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  mainPlayerSection: {
+    flex: 1,
+    width: "98%",
+    gap: 2,
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    shadowColor: "#000",
+  },
+  mainPlayerYard: {
+    width: "78%", // 78% + 10% each for blockList = 98% = width of the main Player section
+    backgroundColor: "#E0E0E0",
+    borderColor: "#000",
+    borderWidth: 3,
+    padding: 2,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
+    borderRadius: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  controlArea: {
+    width: "97%",
+    height: "35%",
+    backgroundColor: "#87CEEB",
+    borderRadius: 5,
+    flexDirection: "row",
+  },
+  blockList: {
+    width: "10%",
+    backgroundColor: "#23CEEB",
+  },
+  playground: {
+    width: "70%",
+    height: "100%",
+    backgroundColor: "#F0F0E0",
+    borderRadius: 3,
+    borderColor: "#000",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scoreRecord: {
+    width: "30%",
+    height: "100%",
+    backgroundColor: "#D3D3D3",
+  },
+  settingArea: {
+    width: "50%",
+    height: "100%",
+
+    flexDirection: "row",
+    gap: 5,
+  },
+  arrowArea: {
+    width: "50%",
+    height: "90%",
+    backgroundColor: "#D3D3D3",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    flexDirection: "column",
+  },
+  button: {
+    width: "30%",
+    height: "20%",
+    backgroundColor: "#FFDD00", // yellow: full red + green
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 60,
+  },
+  secondaryButton: {
+    width: "25%",
+    height: "15%",
+    backgroundColor: "#70CC70", // lighter green
+    borderWidth: 1,
+    borderColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 5,
+    borderRadius: 60,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 1,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  reset: {
+    backgroundColor: "red",
+  },
+  divider: {
+    width: "100%",
+    height: 20,
+    backgroundColor: "#87CEEB",
+    marginVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 1,
+      height: 3,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
