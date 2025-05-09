@@ -1,15 +1,17 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
+  Animated,
   Dimensions,
   Platform,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import BlockList from "../../components/block-list";
+import Box from "../../components/box";
 
 const { width, height } = Dimensions.get("window");
 
@@ -51,9 +53,10 @@ const randomBlock = () => {
 }
 
 const randomPosition = () => {
-  const x = Math.floor(Math.random() * (width - 10)); // Adjust the range based on your design
-  const y = Math.floor(Math.random() * (height - 50)); // Adjust the range based on your design
-  return { x, y };
+  const minWidth = 0.1 * width; // 
+  const maxWidth = 0.12 * width + 0.7 * 0.8 * width -20; // 
+  const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; ; // Adjust the range based on your design
+  return {x} ;
 };
 
 const randomBlockPosition = () => {
@@ -62,15 +65,41 @@ const randomBlockPosition = () => {
   return { block, position };
 };
 
+const boxes = [];
+
+for (let i = 0; i < 40; i++) {
+    boxes.push([]);
+    for (let j = 0; j < 20; j++) {
+      boxes[i].push(new);
+    }
+}
+
+
+
 export default function HomeScreen() {
   const isPortrait = height > width;
   const isLandscape = width > height;
   const isSmallDevice = width < 375; // Adjust this value based on your design requirements
   const isLargeDevice = width > 600; // Adjust this value based on your design requirements
+
+  const yPosition = useRef(new Animated.Value(0)).current;
+
+  const { block, position } = randomBlockPosition(); // call it once, not multiple times
+
+ useEffect(() => {
+    Animated.timing(yPosition, {
+      toValue: height* 0.6, // fall to near bottom of screen
+      duration: 2000, // 2 seconds
+      useNativeDriver: false, // must be false for top/left
+    }).start();
+  }, [yPosition]);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
+      <View style={{height: 30}}> 
       <Text style={styles.heading}>Block Game</Text>
+      </View>
       {/* Main player section */}
       <View style={styles.mainPlayerSection}>
         {/* Block types: not Reversed */}
@@ -82,10 +111,27 @@ export default function HomeScreen() {
         <View style={styles.mainPlayerYard}>
           {/* Playground */}
           <View style={styles.playground}>
-            <Text>Playground</Text>
+          <Text>Playground</Text>
+            <View > 
+
+              <Box/> 
+            </View>
+
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: yPosition,
+              left: position.x,
+            }}
+          >
+            <BlockList
+              blockTypes={[randomBlockPosition().block]}
+              isReversed={false} 
+            />
+          </Animated.View>
 
             {/* Random block drop to the random position */}
-            <View
+            {/* <View
               style={{
                 position: "absolute",
                 top: randomBlockPosition().position.y,
@@ -94,7 +140,7 @@ export default function HomeScreen() {
               <BlockList
                 blockTypes={[randomBlockPosition().block]}
                 isReversed={false} />
-              </View>
+            </View> */}
           </View>
 
           {/* Score and record section */}
@@ -236,7 +282,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#E0E0E0",
     borderColor: "#000",
     borderWidth: 3,
-    padding: 2,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -263,8 +308,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#23CEEB",
   },
   playground: {
-    width: "70%",  // 70% (playground) + 30% (score): width * 80% *70% = 56% width of the window
-    height: "100%",
+    width: 200,  //200 px; 20 boxes of 10 px each
+    height: 400, // 400 px: 40 boxes of 10 px each
     backgroundColor: "#F0F0E0",
     borderRadius: 3,
     borderColor: "#000",
@@ -337,4 +382,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+
+ 
 });

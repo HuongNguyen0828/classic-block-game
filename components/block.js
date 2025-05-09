@@ -8,7 +8,7 @@ const Block = ({ blockTypes, isReversed }) => {
   );
   const blocksToRender = isReversed ? blockTypesReversed : blockTypes;
   return (
-    <View>
+    <View style={{ display: "flex", gap: 5 }}>
       {blocksToRender.map((blockType, index) => (
         // View for each block type
         <View key={index} style={styles.blockTypes}>
@@ -37,7 +37,5 @@ const Block = ({ blockTypes, isReversed }) => {
 export default Block;
 
 const styles = StyleSheet.create({
-  blockTypes: {
-    padding: 5,
-  },
+  blockTypes: {},
 });
