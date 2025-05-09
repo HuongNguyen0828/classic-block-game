@@ -54,7 +54,7 @@ const randomBlock = () => {
 
 const randomPosition = () => {
   const minWidth = 0.1 * width; //
-  const maxWidth = 0.1 * width + 200; //
+  const maxWidth = 200; //
   const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; // Adjust the range based on your design
   return { x };
 };
@@ -86,8 +86,8 @@ export default function HomeScreen() {
 
   useEffect(() => {
     Animated.timing(yPosition, {
-      toValue: 405 - 30, // fall to near bottom of screen
-      duration: 10000, // 2 seconds
+      toValue: 400 - 30, // fall to near bottom of screen
+      duration: 1000, // 2 seconds
       useNativeDriver: false, // must be false for top/left
     }).start();
   }, [yPosition]);
@@ -120,6 +120,19 @@ export default function HomeScreen() {
                 </View>
               ))}
             </View>
+
+            <Animated.View
+              style={{
+                position: "absolute",
+                top: yPosition,
+                left: position.x,
+              }}
+            >
+              <BlockList
+                blockTypes={[randomBlockPosition().block]}
+                isReversed={false}
+              />
+            </Animated.View>
 
             <Animated.View
               style={{
