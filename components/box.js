@@ -11,12 +11,12 @@ const styles = StyleSheet.create({
   box: {
     width: 10,
     height: 10,
-    backgroundColor: "#F1F1F1",
+    backgroundColor: "#D2D6C3",
     borderWidth: 1,
-    borderColor: "#2F4F4F",
+    borderColor: "#BEBBAA",
     borderRadius: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    opacity: 0.2,
   },
 });

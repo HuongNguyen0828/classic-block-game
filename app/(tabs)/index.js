@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import BlockList from "../../components/block-list";
 import Box from "../../components/box";
@@ -50,13 +50,13 @@ const blockTypes = [Z, T, O, L, I];
 const randomBlock = () => {
   const randomIndex = Math.floor(Math.random() * blockTypes.length);
   return blockTypes[randomIndex];
-}
+};
 
 const randomPosition = () => {
-  const minWidth = 0.1 * width; // 
-  const maxWidth = 0.12 * width + 0.7 * 0.8 * width -20; // 
-  const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; ; // Adjust the range based on your design
-  return {x} ;
+  const minWidth = 0.1 * width; //
+  const maxWidth = 0.1 * width + 200; //
+  const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; // Adjust the range based on your design
+  return { x };
 };
 
 const randomBlockPosition = () => {
@@ -68,13 +68,11 @@ const randomBlockPosition = () => {
 const boxes = [];
 
 for (let i = 0; i < 40; i++) {
-    boxes.push([]);
-    for (let j = 0; j < 20; j++) {
-      boxes[i].push(new);
-    }
+  boxes.push([]); // create a new row
+  for (let j = 0; j < 19; j++) {
+    boxes[i].push(1); // push 1 into each column of that row
+  }
 }
-
-
 
 export default function HomeScreen() {
   const isPortrait = height > width;
@@ -86,10 +84,10 @@ export default function HomeScreen() {
 
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
 
- useEffect(() => {
+  useEffect(() => {
     Animated.timing(yPosition, {
-      toValue: height* 0.6, // fall to near bottom of screen
-      duration: 2000, // 2 seconds
+      toValue: 405 - 30, // fall to near bottom of screen
+      duration: 10000, // 2 seconds
       useNativeDriver: false, // must be false for top/left
     }).start();
   }, [yPosition]);
@@ -97,8 +95,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
-      <View style={{height: 30}}> 
-      <Text style={styles.heading}>Block Game</Text>
+      <View style={{ height: 30 }}>
+        <Text style={styles.heading}>Block Game</Text>
       </View>
       {/* Main player section */}
       <View style={styles.mainPlayerSection}>
@@ -111,24 +109,30 @@ export default function HomeScreen() {
         <View style={styles.mainPlayerYard}>
           {/* Playground */}
           <View style={styles.playground}>
-          <Text>Playground</Text>
-            <View > 
-
-              <Box/> 
+            <View>
+              {boxes.map((row, rowIndex) => (
+                <View key={rowIndex} style={{ flexDirection: "row" }}>
+                  {row.map((cell, cellIndex) => (
+                    <Box key={`${rowIndex}-${cellIndex}`} />
+                  ))}
+                  {/* <Box key={rowIndex} /> */}
+                  <Box />
+                </View>
+              ))}
             </View>
 
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: yPosition,
-              left: position.x,
-            }}
-          >
-            <BlockList
-              blockTypes={[randomBlockPosition().block]}
-              isReversed={false} 
-            />
-          </Animated.View>
+            <Animated.View
+              style={{
+                position: "absolute",
+                top: yPosition,
+                left: position.x,
+              }}
+            >
+              <BlockList
+                blockTypes={[randomBlockPosition().block]}
+                isReversed={false}
+              />
+            </Animated.View>
 
             {/* Random block drop to the random position */}
             {/* <View
@@ -298,7 +302,7 @@ const styles = StyleSheet.create({
   },
   controlArea: {
     width: "97%",
-    height: "35%",  // 65% (main player section) + 35% (control area): 
+    height: "35%", // 65% (main player section) + 35% (control area):
     backgroundColor: "#87CEEB",
     borderRadius: 5,
     flexDirection: "row",
@@ -308,14 +312,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#23CEEB",
   },
   playground: {
-    width: 200,  //200 px; 20 boxes of 10 px each
-    height: 400, // 400 px: 40 boxes of 10 px each
+    width: 205, //200 px; 20 boxes of 10 px each
+    height: 405, // 400 px: 40 boxes of 10 px each
     backgroundColor: "#F0F0E0",
     borderRadius: 3,
     borderColor: "#000",
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
   },
   scoreRecord: {
     width: "30%",
@@ -382,6 +388,4 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-
- 
 });
