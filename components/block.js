@@ -1,12 +1,10 @@
 import { StyleSheet, View } from "react-native";
 import BoxBlock from "./box-block";
 
-const Block = ({ type, rotate }) => {
-  const blockReversed = type.map((row) => [...row].reverse());
-  const blockToRender = rotate === 180 ? blockReversed : type;
+const Block = ({ type }) => {
   return (
     <View>
-      {blockToRender.map((row, rowIndex) => (
+      {type.map((row, rowIndex) => (
         // View for each row in the block type
         <View key={rowIndex} style={{ flexDirection: "row" }}>
           {row.map((cell, cellIndex) =>

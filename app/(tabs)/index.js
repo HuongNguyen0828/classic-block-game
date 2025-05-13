@@ -1,7 +1,6 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Animated,
   Dimensions,
   Platform,
   SafeAreaView,
@@ -91,11 +90,14 @@ const randomBlock = () => {
   return blocks[randomIndex].type; // Return the block type
 };
 
-const randomPosition = () => {
+const randomPosition = (blockWidth = 20) => {
   const minWidth = 30; //
-  const maxWidth = 200; //
-  const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; // Adjust the range based on your design
-  return { x, y: 0 }; // y is always 0 for the initial position
+  const maxWidth = 200 - blockWidth; //
+  const x =
+    Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
+    minWidth;
+
+  return { x, y: 0 }; // Adjust the range based on your design
 };
 
 const randomBlockPosition = () => {
@@ -114,9 +116,6 @@ for (let i = 0; i < 40; i++) {
 }
 
 export default function HomeScreen() {
-  const yPosition = useRef(new Animated.Value(0)).current;
-  const yNextPosition = useRef(new Animated.Value(0)).current;
-
   // Setting up state variables
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -126,7 +125,9 @@ export default function HomeScreen() {
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [nextBlock, setNextBlock] = useState(randomBlockPosition().block); // Set initial next block
-  const [blockPosition, setBlockPosition] = useState(position); // Set initial position
+  const [blockPosition, setBlockPosition] = useState({ x: 0, y: 0 }); // Set initial position
+  const [reachedBottom, setReachedBottom] = useState(false); // State to check if the block reached the bottom
+  const [score, setScore] = useState(0); // State to keep track of the score
 
   const gameOver = () => {
     setIsGameOver(true); // Set game over state
@@ -135,43 +136,30 @@ export default function HomeScreen() {
     setCurrentBlock(null); // Clear the current block
   };
 
-  const playContinue = () => {
+  const getMoreNextBlock = () => {
+    if (isGameOver || isPaused || isReset) {
+      return; // Stop the animation if game is over, paused, or reset
+    }
+    // Logic to drop the block down
     setNextBlock(block); // Set the next block
     setCurrentBlock(nextBlock);
-    if (!isGameOver || !isPaused || !isReset) {
-      // Only update the block if the game is not over, not paused, and not reset
-      playContinue(); // Call the function again for continuous animation
-    }
   };
   const positionDrop = (ablock) => {
     // Logic to drop the block down
     const top = 400 - ablock.height;
     return top;
   };
-  const animateSequence = () => {
-    yNextPosition.setValue(1); // Reset the x position to 0
-    yPosition.setValue(1); // Reset the y position to 0
 
-    Animated.sequence([
-      Animated.timing(yPosition, {
-        toValue: 400 - 40, // fall to near bottom of screen
-        duration: 1000, // 2 seconds
-        useNativeDriver: false, // must be false for top/left
-      }),
-      Animated.timing(yNextPosition, {
-        toValue: 400 - 40, // fall to near bottom of screen
-        duration: 1000, // 2 seconds
-        useNativeDriver: false, // must be false for top/left
-      }),
-    ]).start(() => {
-      // playContinue(); // Call the function again for continuous animation
-    });
-  };
-
+  // Game loop
   useEffect(() => {
-    // Start the animation when the component mounts
-    animateSequence();
-  }, []);
+    if (isGameOver || isPaused) return;
+
+    const gameInterval = setInterval(() => {
+      moveDown();
+    }, 1000);
+
+    return () => clearInterval(gameInterval);
+  }, [isGameOver, isPaused, currentBlock]);
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
@@ -198,6 +186,25 @@ export default function HomeScreen() {
     if (newPosition.x > 200) newPosition.x = 200; // Prevent moving out of bounds
 
     setBlockPosition(newPosition); // Update the block position
+  };
+
+  const spawnNewBlock = () => {
+    setCurrentBlock(nextBlock);
+    setNextBlock(randomBlock());
+    setBlockPosition(randomPosition());
+    setScore((prev) => prev + 10);
+  };
+
+  const moveDown = () => {
+    // Logic to move the block down
+    setBlockPosition((prev) => {
+      const newY = prev.y + 20;
+      if (newY >= 400 - currentBlock.length * 10) {
+        spawnNewBlock();
+        return prev;
+      }
+      return { ...prev, y: newY };
+    });
   };
 
   return (
@@ -229,15 +236,15 @@ export default function HomeScreen() {
               ))}
             </View>
 
-            <Animated.View
+            <View
               style={{
                 position: "absolute",
-                top: yPosition,
-                left: position.x,
+                top: blockPosition.y,
+                left: blockPosition.x,
               }}
             >
-              <Block type={currentBlock} rotate={0} />
-            </Animated.View>
+              <Block type={currentBlock} />
+            </View>
 
             {/* <Animated.View
               style={{
@@ -246,7 +253,7 @@ export default function HomeScreen() {
                 left: position.x,
               }}
             >
-              <Block type={nextBlock} rotate={0} />
+              <Block type={nextBlock} />
             </Animated.View> */}
           </View>
 
@@ -351,7 +358,7 @@ export default function HomeScreen() {
           </View>
 
           {/* Third row: Down */}
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={moveDown}>
             <Text>Down</Text>
           </TouchableOpacity>
         </View>
