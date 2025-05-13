@@ -144,11 +144,6 @@ export default function HomeScreen() {
     setNextBlock(block); // Set the next block
     setCurrentBlock(nextBlock);
   };
-  const positionDrop = (ablock) => {
-    // Logic to drop the block down
-    const top = 400 - ablock.height;
-    return top;
-  };
 
   // Game loop
   useEffect(() => {
@@ -172,25 +167,31 @@ export default function HomeScreen() {
   };
 
   const moveLeft = () => {
+    if (!currentBlock) return;
     // Logic to move the block left
-    const newPosition = { x: position.x - 10, y: position.y };
-    if (newPosition.x < 30) newPosition.x = 30; // Prevent moving out of bounds
-    if (newPosition.x > 200) newPosition.x = 200; // Prevent moving out of bounds
 
-    setBlockPosition(newPosition); // Update the block position
+    setBlockPosition((prev) => {
+      let newX = prev.x - 10;
+      if (newX < 0) newX = 0; // Prevent moving out of bounds
+      return { ...prev, x: newX };
+    }); // Update the block position
   };
-  const moveRight = () => {
-    // Logic to move the block right
-    const newPosition = { x: position.x + 10, y: position.y };
-    if (newPosition.x < 30) newPosition.x = 30; // Prevent moving out of bounds
-    if (newPosition.x > 200) newPosition.x = 200; // Prevent moving out of bounds
 
-    setBlockPosition(newPosition); // Update the block position
+  const moveRight = () => {
+    if (!currentBlock) return;
+    // Logic to move the block right
+    setBlockPosition((prev) => {
+      let newX = prev.x + 10;
+      if (newX > 200 - currentBlock[0].length * 10) {
+        newX = 200 - currentBlock[0].length * 10; // Prevent moving out of bounds
+      }
+      return { ...prev, x: newX };
+    }); // Update the block position
   };
 
   const spawnNewBlock = () => {
-    setCurrentBlock(nextBlock);
     setNextBlock(randomBlock());
+    setCurrentBlock(nextBlock);
     setBlockPosition(randomPosition());
     setScore((prev) => prev + 10);
   };
@@ -198,7 +199,7 @@ export default function HomeScreen() {
   const moveDown = () => {
     // Logic to move the block down
     setBlockPosition((prev) => {
-      const newY = prev.y + 20;
+      const newY = prev.y + 40;
       if (newY >= 400 - currentBlock.length * 10) {
         spawnNewBlock();
         return prev;
