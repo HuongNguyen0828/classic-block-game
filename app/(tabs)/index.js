@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -21,23 +21,47 @@ const Z = [
   [1, 0],
 ];
 
+const Zattributes = {
+  type: Z,
+  height: 3 * (10 + 2), // 3 rows of 10px each + 2px border
+  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+};
+
 const T = [
   [1, 0],
   [1, 1],
   [1, 0],
 ];
 
+const Tattributes = {
+  type: T,
+  height: 3 * (10 + 2), // 3 rows of 10px each + 2px border
+  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+};
+
 const O = [
   [1, 1],
   [1, 1],
   //[null, null]
 ];
+
+const Oattributes = {
+  type: O,
+  height: 2 * (10 + 2), // 2 rows of 10px each + 2px border
+  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+};
+
 const L = [
   [1, 0],
   [1, 0],
   [1, 1],
 ];
 
+const Lattributes = {
+  type: L,
+  height: 3 * (10 + 2), // 3 rows of 10px each + 2px border
+  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+};
 const I = [
   [1, 0],
   [1, 0],
@@ -45,15 +69,29 @@ const I = [
   [1, 0],
 ];
 
-const blockTypes = [Z, T, O, L, I];
+const Iattributes = {
+  type: I,
+  height: 4 * (10 + 2), // 4 rows of 10px each + 2px border
+  width: 1 * (10 + 2), // 1 columns of 10px each + 2px border
+};
+
+const blocks = [
+  Zattributes,
+  Tattributes,
+  Oattributes,
+  Lattributes,
+  Iattributes,
+];
+
+const blockTypes = blocks.map((block) => block.type);
 
 const randomBlock = () => {
-  const randomIndex = Math.floor(Math.random() * blockTypes.length);
-  return blockTypes[randomIndex];
+  const randomIndex = Math.floor(Math.random() * blocks.length);
+  return blocks[randomIndex].type; // Return the block type
 };
 
 const randomPosition = () => {
-  const minWidth = 0.1 * width; //
+  const minWidth = 30; //
   const maxWidth = 200; //
   const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; // Adjust the range based on your design
   return { x };
@@ -75,22 +113,37 @@ for (let i = 0; i < 40; i++) {
 }
 
 export default function HomeScreen() {
-  const isPortrait = height > width;
-  const isLandscape = width > height;
-  const isSmallDevice = width < 375; // Adjust this value based on your design requirements
-  const isLargeDevice = width > 600; // Adjust this value based on your design requirements
-
   const yPosition = useRef(new Animated.Value(0)).current;
+  const yNextPosition = useRef(new Animated.Value(0)).current;
+
+  // Setting up state variables
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isSoundOn, setIsSoundOn] = useState(true);
+  const [isReset, setIsReset] = useState(false);
 
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
+  const [currentBlock, setCurrentBlock] = useState(block);
+  const [nextBlock, setNextBlock] = useState([]);
 
   useEffect(() => {
     Animated.timing(yPosition, {
-      toValue: 400 - 30, // fall to near bottom of screen
+      toValue: 400 - 40, // fall to near bottom of screen
       duration: 1000, // 2 seconds
       useNativeDriver: false, // must be false for top/left
-    }).start();
-  }, [yPosition]);
+    }).start(({ finished }) => {
+      if (finished) {
+        setNextBlock(randomBlockPosition().block);
+        yNextPosition.setValue(0);
+        // Start the animation again
+        Animated.timing(yNextPosition, {
+          toValue: 400 - 40, // fall to near bottom of screen
+          duration: 1000, // 2 seconds
+          useNativeDriver: false, // must be false for top/left
+        }).start();
+      }
+    });
+  }, [yPosition, yNextPosition]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,7 +159,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Play Yard  with score section */}
-        <View style={styles.mainPlayerYard}>
+        <View style={styles.mainPlayerYardwithScore}>
           {/* Playground */}
           <View style={styles.playground}>
             <View>
@@ -137,7 +190,7 @@ export default function HomeScreen() {
             <Animated.View
               style={{
                 position: "absolute",
-                top: yPosition,
+                top: yNextPosition,
                 left: position.x,
               }}
             >
@@ -146,18 +199,6 @@ export default function HomeScreen() {
                 isReversed={false}
               />
             </Animated.View>
-
-            {/* Random block drop to the random position */}
-            {/* <View
-              style={{
-                position: "absolute",
-                top: randomBlockPosition().position.y,
-                left: randomBlockPosition().position.x,
-              }}>
-              <BlockList
-                blockTypes={[randomBlockPosition().block]}
-                isReversed={false} />
-            </View> */}
           </View>
 
           {/* Score and record section */}
@@ -287,22 +328,22 @@ const styles = StyleSheet.create({
   },
   mainPlayerSection: {
     flex: 1,
-    width: "98%",
+    width: "100%",
     gap: 2,
     flexDirection: "row",
     backgroundColor: "#fff",
     borderRadius: 5,
     shadowColor: "#000",
   },
-  mainPlayerYard: {
-    width: "80%", // 78% + 10% each for blockList = 98% = width of the main Player section
+  mainPlayerYardwithScore: {
+    width: 300, // 78% + 10% each for blockList = 98% = width of the main Player section
+    height: 400,
     backgroundColor: "#E0E0E0",
     borderColor: "#000",
     borderWidth: 3,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    height: "100%",
     borderRadius: 5,
     shadowColor: "#000",
     shadowOffset: {
@@ -321,12 +362,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   blockList: {
-    width: "10%",
+    width: 30,
     backgroundColor: "#23CEEB",
   },
   playground: {
-    width: 205, //200 px; 20 boxes of 10 px each
-    height: 405, // 400 px: 40 boxes of 10 px each
+    width: 200, //200 px; 20 boxes of 10 px each
+    height: 400, // 400 px: 40 boxes of 10 px each
     backgroundColor: "#F0F0E0",
     borderRadius: 3,
     borderColor: "#000",
@@ -337,7 +378,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   scoreRecord: {
-    width: "30%",
+    width: 100,
     height: "100%",
     backgroundColor: "#D3D3D3",
   },

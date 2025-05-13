@@ -15,13 +15,13 @@ const styles = StyleSheet.create({
   block: {
     width: 10,
     height: 10,
-    borderRadius: 1.1,
-    borderWidth: 0.5,
+    borderRadius: 1,
+    borderWidth: 1,
     borderColor: "#000",
   },
   innerBlock: {
-    width: "75%",
-    height: "75%",
+    width: "80%",
+    height: "80%",
     backgroundColor: "#000",
     borderRadius: 1,
     margin: "auto",
