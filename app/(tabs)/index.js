@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Block from "../../components/block";
 import BlockList from "../../components/block-list";
 import Box from "../../components/box";
 
@@ -23,8 +24,8 @@ const Z = [
 
 const Zattributes = {
   type: Z,
-  height: 3 * (10 + 2), // 3 rows of 10px each + 2px border
-  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+  height: 30, // 3 rows of 10px each + 2px border
+  width: 20, // 2 columns of 10px each + 2px border
 };
 
 const T = [
@@ -35,8 +36,8 @@ const T = [
 
 const Tattributes = {
   type: T,
-  height: 3 * (10 + 2), // 3 rows of 10px each + 2px border
-  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+  height: 30, // 3 rows of 10px each + 2px border
+  width: 20, // 2 columns of 10px each + 2px border
 };
 
 const O = [
@@ -47,8 +48,8 @@ const O = [
 
 const Oattributes = {
   type: O,
-  height: 2 * (10 + 2), // 2 rows of 10px each + 2px border
-  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+  height: 20, // 2 rows of 10px each + 2px border
+  width: 20, // 2 columns of 10px each + 2px border
 };
 
 const L = [
@@ -59,8 +60,8 @@ const L = [
 
 const Lattributes = {
   type: L,
-  height: 3 * (10 + 2), // 3 rows of 10px each + 2px border
-  width: 2 * (10 + 2), // 2 columns of 10px each + 2px border
+  height: 30, // 3 rows of 10px each + 2px border
+  width: 20, // 2 columns of 10px each + 2px border
 };
 const I = [
   [1, 0],
@@ -71,8 +72,8 @@ const I = [
 
 const Iattributes = {
   type: I,
-  height: 4 * (10 + 2), // 4 rows of 10px each + 2px border
-  width: 1 * (10 + 2), // 1 columns of 10px each + 2px border
+  height: 40, // 4 rows of 10px each + 2px border
+  width: 10, // 1 columns of 10px each + 2px border
 };
 
 const blocks = [
@@ -94,7 +95,7 @@ const randomPosition = () => {
   const minWidth = 30; //
   const maxWidth = 200; //
   const x = Math.floor(Math.random() * (maxWidth - minWidth + 1)) + minWidth; // Adjust the range based on your design
-  return { x };
+  return { x, y: 0 }; // y is always 0 for the initial position
 };
 
 const randomBlockPosition = () => {
@@ -123,30 +124,81 @@ export default function HomeScreen() {
   const [isReset, setIsReset] = useState(false);
 
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
-  const randomBlock = randomBlockPosition().block; // call it once, not multiple times
-  const [currentBlock, setCurrentBlock] = useState([randomBlock]); // Set initial block
-  const [nextBlock, setNextBlock] = useState([]);
+  const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
+  const [nextBlock, setNextBlock] = useState(randomBlockPosition().block); // Set initial next block
+  const [blockPosition, setBlockPosition] = useState(position); // Set initial position
+
+  const gameOver = () => {
+    setIsGameOver(true); // Set game over state
+    setIsPaused(true); // Pause the game
+    setIsReset(true); // Reset the game
+    setCurrentBlock(null); // Clear the current block
+  };
+
+  const playContinue = () => {
+    setNextBlock(block); // Set the next block
+    setCurrentBlock(nextBlock);
+    if (!isGameOver || !isPaused || !isReset) {
+      // Only update the block if the game is not over, not paused, and not reset
+      playContinue(); // Call the function again for continuous animation
+    }
+  };
+  const positionDrop = (ablock) => {
+    // Logic to drop the block down
+    const top = 400 - ablock.height;
+    return top;
+  };
+  const animateSequence = () => {
+    yNextPosition.setValue(1); // Reset the x position to 0
+    yPosition.setValue(1); // Reset the y position to 0
+
+    Animated.sequence([
+      Animated.timing(yPosition, {
+        toValue: 400 - 40, // fall to near bottom of screen
+        duration: 1000, // 2 seconds
+        useNativeDriver: false, // must be false for top/left
+      }),
+      Animated.timing(yNextPosition, {
+        toValue: 400 - 40, // fall to near bottom of screen
+        duration: 1000, // 2 seconds
+        useNativeDriver: false, // must be false for top/left
+      }),
+    ]).start(() => {
+      // playContinue(); // Call the function again for continuous animation
+    });
+  };
 
   useEffect(() => {
-    Animated.timing(yPosition, {
-      toValue: 400 - 40, // fall to near bottom of screen
-      duration: 1000, // 2 seconds
-      useNativeDriver: false, // must be false for top/left
-    }).start(({ finished }) => {
-      if (finished) {
-        setNextBlock([randomBlock]); // Set the next block
-        setCurrentBlock(nextBlock);
+    // Start the animation when the component mounts
+    animateSequence();
+  }, []);
 
-        yNextPosition.setValue(0);
-        // Start the animation again
-        Animated.timing(yNextPosition, {
-          toValue: 400 - 40, // fall to near bottom of screen
-          duration: 1000, // 2 seconds
-          useNativeDriver: false, // must be false for top/left
-        }).start();
-      }
-    });
-  }, [yPosition, yNextPosition]);
+  // Default is rotating 90 degrees clockwise
+  const rotateBlock = () => {
+    if (!currentBlock) return;
+    // Logic to rotate the block
+    const rotatedBlock = currentBlock[0].map((_, colIndex) =>
+      currentBlock.map((row) => row[colIndex]).reverse()
+    );
+    setCurrentBlock(rotatedBlock); // Update the current block with the rotated block
+  };
+
+  const moveLeft = () => {
+    // Logic to move the block left
+    const newPosition = { x: position.x - 10, y: position.y };
+    if (newPosition.x < 30) newPosition.x = 30; // Prevent moving out of bounds
+    if (newPosition.x > 200) newPosition.x = 200; // Prevent moving out of bounds
+
+    setBlockPosition(newPosition); // Update the block position
+  };
+  const moveRight = () => {
+    // Logic to move the block right
+    const newPosition = { x: position.x + 10, y: position.y };
+    if (newPosition.x < 30) newPosition.x = 30; // Prevent moving out of bounds
+    if (newPosition.x > 200) newPosition.x = 200; // Prevent moving out of bounds
+
+    setBlockPosition(newPosition); // Update the block position
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -184,18 +236,18 @@ export default function HomeScreen() {
                 left: position.x,
               }}
             >
-              <BlockList blockTypes={currentBlock} isReversed={false} />
+              <Block type={currentBlock} rotate={0} />
             </Animated.View>
 
-            <Animated.View
+            {/* <Animated.View
               style={{
                 position: "absolute",
                 top: yNextPosition,
                 left: position.x,
               }}
             >
-              <BlockList blockTypes={nextBlock} isReversed={false} />
-            </Animated.View>
+              <Block type={nextBlock} rotate={0} />
+            </Animated.View> */}
           </View>
 
           {/* Score and record section */}
@@ -231,7 +283,7 @@ export default function HomeScreen() {
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={rotateBlock}>
             <Text>Rotate</Text>
           </TouchableOpacity>
 
@@ -253,6 +305,7 @@ export default function HomeScreen() {
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
               }}
+              onPress={moveLeft}
             >
               <Text>Left</Text>
             </TouchableOpacity>
@@ -291,6 +344,7 @@ export default function HomeScreen() {
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
               }}
+              onPress={() => moveRight()}
             >
               <Text>Right</Text>
             </TouchableOpacity>
@@ -375,7 +429,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   scoreRecord: {
-    width: 100,
+    width: 90,
     height: "100%",
     backgroundColor: "#D3D3D3",
   },

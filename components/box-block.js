@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
-const SingleBlock = () => {
+const BoxBlock = () => {
   return (
     <View style={styles.block}>
       <View style={styles.innerBlock} />
@@ -9,7 +9,7 @@ const SingleBlock = () => {
   );
 };
 
-export default SingleBlock;
+export default BoxBlock;
 
 const styles = StyleSheet.create({
   block: {
