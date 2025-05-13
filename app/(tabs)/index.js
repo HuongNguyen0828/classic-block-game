@@ -123,7 +123,8 @@ export default function HomeScreen() {
   const [isReset, setIsReset] = useState(false);
 
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
-  const [currentBlock, setCurrentBlock] = useState(block);
+  const randomBlock = randomBlockPosition().block; // call it once, not multiple times
+  const [currentBlock, setCurrentBlock] = useState([randomBlock]); // Set initial block
   const [nextBlock, setNextBlock] = useState([]);
 
   useEffect(() => {
@@ -133,7 +134,9 @@ export default function HomeScreen() {
       useNativeDriver: false, // must be false for top/left
     }).start(({ finished }) => {
       if (finished) {
-        setNextBlock(randomBlockPosition().block);
+        setNextBlock([randomBlock]); // Set the next block
+        setCurrentBlock(nextBlock);
+
         yNextPosition.setValue(0);
         // Start the animation again
         Animated.timing(yNextPosition, {
@@ -181,10 +184,7 @@ export default function HomeScreen() {
                 left: position.x,
               }}
             >
-              <BlockList
-                blockTypes={[randomBlockPosition().block]}
-                isReversed={false}
-              />
+              <BlockList blockTypes={currentBlock} isReversed={false} />
             </Animated.View>
 
             <Animated.View
@@ -194,10 +194,7 @@ export default function HomeScreen() {
                 left: position.x,
               }}
             >
-              <BlockList
-                blockTypes={[randomBlockPosition().block]}
-                isReversed={false}
-              />
+              <BlockList blockTypes={nextBlock} isReversed={false} />
             </Animated.View>
           </View>
 
