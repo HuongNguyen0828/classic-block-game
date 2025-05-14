@@ -58,12 +58,6 @@ const randomPosition = (blockWidth = 20) => {
   return { x, y: 0 }; // Adjust the range based on your design
 };
 
-const randomBlockPosition = () => {
-  const block = randomBlock();
-  const position = randomPosition();
-  return { block, position };
-};
-
 const boxes = [];
 
 for (let i = 0; i < 40; i++) {
@@ -81,10 +75,11 @@ export default function HomeScreen() {
   const [isReset, setIsReset] = useState(false);
 
   // Randomly generate a block and its position
-  const { block, position } = randomBlockPosition(); // call it once, not multiple times
+  const position = randomPosition(); // call it once, not multiple times
+  const block = randomBlock(); // call it once, not multiple times
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
-  const [reachedBottom, setReachedBottom] = useState(false); // State to check if the block reached the bottom
+  const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
@@ -150,7 +145,7 @@ export default function HomeScreen() {
     setCurrentBlock(nextBlock); // Set the current block to the next block
     setBlockPosition(randomPosition()); // Reset the block position
     setNextBlock(randomBlock()); // Generate a new next block
-    setReachedBottom(false); // Reset the reached bottom state
+    setDisableButton(false); // Reset the disable button state
   };
 
   // Unified game loop
@@ -163,14 +158,7 @@ export default function HomeScreen() {
     }, 100);
 
     return () => clearInterval(gameInterval);
-  }, [
-    isPaused,
-    isGameOver,
-    isReset,
-    currentBlock,
-    blockPosition,
-    placedBlocks,
-  ]);
+  }, [isPaused, isGameOver, isReset, currentBlock, blockPosition, moveDown]);
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
@@ -199,8 +187,13 @@ export default function HomeScreen() {
 
     setBlockPosition((prev) => {
       let newX = prev.x - 10;
-
-      if (newX < 0) newX = 0; // Prevent moving out of bounds
+      // Check if the block collides with the placed blocks
+      if (collisionDetection(currentBlock, { ...prev, x: newX })) {
+        newX = prev.x; // Reset to the previous position
+      }
+      if (newX < 0) {
+        newX = 0; // Prevent moving out of bounds
+      }
       return { ...prev, x: newX };
     }); // Update the block position
   };
@@ -210,6 +203,10 @@ export default function HomeScreen() {
     // Logic to move the block right
     setBlockPosition((prev) => {
       let newX = prev.x + 10;
+      // Check for collision with the right boundary
+      if (collisionDetection(currentBlock, { ...prev, x: newX })) {
+        newX = prev.x; // Reset to the previous position
+      }
 
       if (newX > 200 - currentBlock[0].length * 10) {
         newX = 200 - currentBlock[0].length * 10; // Prevent moving out of bounds
@@ -226,13 +223,13 @@ export default function HomeScreen() {
       if (collisionDetection(currentBlock, { ...prev, y: newY })) {
         // If collision detected, set the block to the bottom
         newY = prev.y; // Reset to the previous position
-        setReachedBottom(true); // Set reached bottom state
+        setDisableButton(true); // Set disable button state
         spawnNewBlock(); // Spawn a new block
       }
 
       // Check if the block has reached the bottom
       if (prev.y === 400 - currentBlock.length * 10) {
-        setReachedBottom(true); // Set reached bottom state
+        setDisableButton(true); // Set reached bottom state
         spawnNewBlock(); // Spawn a new block
         return { x: prev.x, y: prev.y };
       }
@@ -246,9 +243,22 @@ export default function HomeScreen() {
     setBlockPosition(randomPosition());
     setPlacedBlocks([]); // Reset the placed blocks
     setScore(0); // Reset the score
-    setReachedBottom(false); // Reset the reached bottom state
+    setDisableButton(false); // Reset the reached bottom state
     setIsGameOver(false); // Reset the game over state
     setIsPaused(false); // Reset the paused state
+  };
+  const handlePause = () => {
+    // are paused, now unpause, then set the button to be enabled
+    if (isPaused) {
+      setDisableButton(false); // Disable buttons when paused
+    } else {
+      setDisableButton(true); // Enable buttons when unpaused
+    }
+
+    setIsPaused(!isPaused);
+  };
+  const handleSound = () => {
+    setIsSoundOn(!isSoundOn);
   };
 
   return (
@@ -333,7 +343,7 @@ export default function HomeScreen() {
         <View style={styles.settingArea}>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => setIsPaused(!isPaused)}
+            onPress={handlePause}
           >
             <Text>Pause</Text>
           </TouchableOpacity>
@@ -355,7 +365,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              !reachedBottom && rotateBlock();
+              !disableButton && rotateBlock();
             }}
           >
             <Text>Rotate</Text>
@@ -380,7 +390,7 @@ export default function HomeScreen() {
                 borderRadius: 60,
               }}
               onPress={() => {
-                !reachedBottom && moveLeft();
+                !disableButton && moveLeft();
               }}
             >
               <Text>Left</Text>
@@ -421,7 +431,7 @@ export default function HomeScreen() {
                 borderRadius: 60,
               }}
               onPress={() => {
-                !reachedBottom && moveRight();
+                !disableButton && moveRight();
               }}
             >
               <Text>Right</Text>
@@ -432,7 +442,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              !reachedBottom && moveDown();
+              !disableButton && moveDown();
             }}
           >
             <Text>Down</Text>
