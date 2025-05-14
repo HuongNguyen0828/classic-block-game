@@ -86,32 +86,53 @@ export default function HomeScreen() {
   const [isSoundOn, setIsSoundOn] = useState(true);
   const [isReset, setIsReset] = useState(false);
 
+  // Randomly generate a block and its position
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
-  const nextBlockPosition = randomPosition(); // Get the next block position
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
-  const [nextBlock, setNextBlock] = useState(null); // Set initial next block
-  const [blockPosition, setBlockPosition] = useState({ x: 0, y: 0 }); // Set initial position
+  const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [reachedBottom, setReachedBottom] = useState(false); // State to check if the block reached the bottom
+
+  // Set the next block position
+  const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
 
-  const getMoreNextBlock = () => {
-    if (isGameOver || isPaused || isReset) {
-      return; // Stop the animation if game is over, paused, or reset
-    }
-    // Logic to drop the block down
-    // setNextBlock(currentBlock);
-    // setCurrentBlock(null);
+  // list of blocks to render
+  const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
+
+  // Spawn a new block
+  const spawnNewBlock = () => {
+    // Add current block to placed blocks before replacing it
+    setPlacedBlocks((prev) => [
+      ...prev,
+      {
+        type: currentBlock,
+        position: blockPosition,
+      },
+    ]);
+    setCurrentBlock(nextBlock); // Set the current block to the next block
+    setBlockPosition(randomPosition()); // Reset the block position
+    setNextBlock(randomBlock()); // Generate a new next block
+    setReachedBottom(false); // Reset the reached bottom state
   };
 
-  // Game loop
+  // Unified game loop
   useEffect(() => {
     if (isGameOver || isPaused) return;
-
+    // Animate the block down
     const gameInterval = setInterval(() => {
-      moveDown();
-    }, 1000);
-    return () => clearInterval(gameInterval); // Cleanup interval on unmount
-  }, [isGameOver, isPaused, currentBlock]);
+      // Adding current block to the block list
+      moveDown(); // Move the block down every second
+    }, 100);
+
+    return () => clearInterval(gameInterval);
+  }, [
+    isPaused,
+    isGameOver,
+    isReset,
+    currentBlock,
+    blockPosition,
+    placedBlocks,
+  ]);
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
@@ -157,27 +178,28 @@ export default function HomeScreen() {
     }); // Update the block position
   };
 
-  const spawnNewBlock = () => {
-    setNextBlock(randomBlock());
-    setCurrentBlock(nextBlock);
-    setBlockPosition(randomPosition());
-    setScore((prev) => prev + 10);
-  };
-
   const moveDown = () => {
     // Logic to move the block down
     setBlockPosition((prev) => {
       if (prev.y === 400 - currentBlock.length * 10) {
         setReachedBottom(true); // Set reached bottom state
+        spawnNewBlock(); // Spawn a new block
         return prev;
       }
       let newY = prev.y + 10;
-      if (newY > 400 - currentBlock.length * 10) {
-        spawnNewBlock();
-        return prev;
-      }
       return { ...prev, y: newY };
     });
+  };
+
+  const handleReset = () => {
+    setIsReset(!isReset);
+    setCurrentBlock(randomBlock());
+    setBlockPosition(randomPosition());
+    setPlacedBlocks([]); // Reset the placed blocks
+    setScore(0); // Reset the score
+    setReachedBottom(false); // Reset the reached bottom state
+    setIsGameOver(false); // Reset the game over state
+    setIsPaused(false); // Reset the paused state
   };
 
   return (
@@ -209,25 +231,30 @@ export default function HomeScreen() {
               ))}
             </View>
 
-            <View
-              style={{
-                position: "absolute",
-                top: blockPosition.y,
-                left: blockPosition.x,
-              }}
-            >
-              <Block type={currentBlock} />
-            </View>
+            {/* Render the settled down blocks */}
+            {placedBlocks.map((item, index) => (
+              <View
+                key={index}
+                style={{
+                  position: "absolute",
+                  top: item.position.y,
+                  left: item.position.x,
+                }}
+              >
+                <Block type={item.type} />
+              </View>
+            ))}
 
-            {getMoreNextBlock() && (
+            {/* Rendering Current Block */}
+            {currentBlock && (
               <View
                 style={{
                   position: "absolute",
-                  top: nextBlockPosition.y,
-                  left: nextBlockPosition.x,
+                  top: blockPosition.y,
+                  left: blockPosition.x,
                 }}
               >
-                <Block type={nextBlock} />
+                <Block type={currentBlock} />
               </View>
             )}
           </View>
@@ -250,7 +277,10 @@ export default function HomeScreen() {
       <View style={styles.controlArea}>
         {/* Setting: Pause, Sound, Reset */}
         <View style={styles.settingArea}>
-          <TouchableOpacity style={styles.secondaryButton}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => setIsPaused(!isPaused)}
+          >
             <Text>Pause</Text>
           </TouchableOpacity>
 
@@ -258,7 +288,10 @@ export default function HomeScreen() {
             <Text>Sound</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.secondaryButton, styles.reset]}>
+          <TouchableOpacity
+            style={[styles.secondaryButton, styles.reset]}
+            onPress={handleReset}
+          >
             <Text>Reset</Text>
           </TouchableOpacity>
         </View>
