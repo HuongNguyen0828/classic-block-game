@@ -87,27 +87,20 @@ export default function HomeScreen() {
   const [isReset, setIsReset] = useState(false);
 
   const { block, position } = randomBlockPosition(); // call it once, not multiple times
+  const nextBlockPosition = randomPosition(); // Get the next block position
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
-  const [nextBlock, setNextBlock] = useState(randomBlockPosition().block); // Set initial next block
+  const [nextBlock, setNextBlock] = useState(null); // Set initial next block
   const [blockPosition, setBlockPosition] = useState({ x: 0, y: 0 }); // Set initial position
   const [reachedBottom, setReachedBottom] = useState(false); // State to check if the block reached the bottom
   const [score, setScore] = useState(0); // State to keep track of the score
-
-  const GetMoreBlock = () => {
-    setIsGameOver(true); // Set game over state
-    setIsPaused(true); // Pause the game
-    setIsReset(true); // Reset the game
-    setCurrentBlock(null); // Clear the current block
-    return true; // Return true to indicate game is continued
-  };
 
   const getMoreNextBlock = () => {
     if (isGameOver || isPaused || isReset) {
       return; // Stop the animation if game is over, paused, or reset
     }
     // Logic to drop the block down
-    setNextBlock(block); // Set the next block
-    setCurrentBlock(nextBlock);
+    // setNextBlock(currentBlock);
+    // setCurrentBlock(null);
   };
 
   // Game loop
@@ -225,6 +218,18 @@ export default function HomeScreen() {
             >
               <Block type={currentBlock} />
             </View>
+
+            {getMoreNextBlock() && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: nextBlockPosition.y,
+                  left: nextBlockPosition.x,
+                }}
+              >
+                <Block type={nextBlock} />
+              </View>
+            )}
           </View>
 
           {/* Score and record section */}
