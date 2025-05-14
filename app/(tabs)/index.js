@@ -41,13 +41,9 @@ const L = [
 
 const I = [[1], [1], [1], [1]];
 
-const Iattributes = {
-  type: I,
-  height: 40, // 4 rows of 10px each + 2px border
-  width: 10, // 1 columns of 10px each + 2px border
-};
-
 const blocks = [Z, T, O, L, I];
+
+const trackBox = []; // empty row
 
 const randomBlock = () => {
   const randomIndex = Math.floor(Math.random() * blocks.length);
@@ -73,9 +69,9 @@ const randomBlockPosition = () => {
 const boxes = [];
 
 for (let i = 0; i < 40; i++) {
-  boxes.push([]); // create a new row
+  boxes.push([]); // create a new row: 41 rows
   for (let j = 0; j < 19; j++) {
-    boxes[i].push(1); // push 1 into each column of that row
+    boxes[i].push(1); // push 1 into each column of that row: 20 columns
   }
 }
 
@@ -98,6 +94,11 @@ export default function HomeScreen() {
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
+
+  // Track of the score fore each row and column inside playground
+  const [scoreTrack, setScoreTrack] = useState(
+    Array.from({ length: 40 }, () => Array(19).fill(0))
+  );
 
   // Spawn a new block
   const spawnNewBlock = () => {
@@ -225,7 +226,6 @@ export default function HomeScreen() {
                   {row.map((cell, cellIndex) => (
                     <Box key={`${rowIndex}-${cellIndex}`} />
                   ))}
-                  {/* <Box key={rowIndex} /> */}
                   <Box />
                 </View>
               ))}
