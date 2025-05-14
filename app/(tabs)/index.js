@@ -21,23 +21,11 @@ const Z = [
   [1, 0],
 ];
 
-const Zattributes = {
-  type: Z,
-  height: 30, // 3 rows of 10px each + 2px border
-  width: 20, // 2 columns of 10px each + 2px border
-};
-
 const T = [
   [1, 0],
   [1, 1],
   [1, 0],
 ];
-
-const Tattributes = {
-  type: T,
-  height: 30, // 3 rows of 10px each + 2px border
-  width: 20, // 2 columns of 10px each + 2px border
-};
 
 const O = [
   [1, 1],
@@ -45,29 +33,13 @@ const O = [
   //[null, null]
 ];
 
-const Oattributes = {
-  type: O,
-  height: 20, // 2 rows of 10px each + 2px border
-  width: 20, // 2 columns of 10px each + 2px border
-};
-
 const L = [
   [1, 0],
   [1, 0],
   [1, 1],
 ];
 
-const Lattributes = {
-  type: L,
-  height: 30, // 3 rows of 10px each + 2px border
-  width: 20, // 2 columns of 10px each + 2px border
-};
-const I = [
-  [1, 0],
-  [1, 0],
-  [1, 0],
-  [1, 0],
-];
+const I = [[1], [1], [1], [1]];
 
 const Iattributes = {
   type: I,
@@ -75,19 +47,11 @@ const Iattributes = {
   width: 10, // 1 columns of 10px each + 2px border
 };
 
-const blocks = [
-  Zattributes,
-  Tattributes,
-  Oattributes,
-  Lattributes,
-  Iattributes,
-];
-
-const blockTypes = blocks.map((block) => block.type);
+const blocks = [Z, T, O, L, I];
 
 const randomBlock = () => {
   const randomIndex = Math.floor(Math.random() * blocks.length);
-  return blocks[randomIndex].type; // Return the block type
+  return blocks[randomIndex]; // Return the block type
 };
 
 const randomPosition = (blockWidth = 20) => {
@@ -129,11 +93,12 @@ export default function HomeScreen() {
   const [reachedBottom, setReachedBottom] = useState(false); // State to check if the block reached the bottom
   const [score, setScore] = useState(0); // State to keep track of the score
 
-  const gameOver = () => {
+  const GetMoreBlock = () => {
     setIsGameOver(true); // Set game over state
     setIsPaused(true); // Pause the game
     setIsReset(true); // Reset the game
     setCurrentBlock(null); // Clear the current block
+    return true; // Return true to indicate game is continued
   };
 
   const getMoreNextBlock = () => {
@@ -152,18 +117,28 @@ export default function HomeScreen() {
     const gameInterval = setInterval(() => {
       moveDown();
     }, 1000);
-
-    return () => clearInterval(gameInterval);
+    return () => clearInterval(gameInterval); // Cleanup interval on unmount
   }, [isGameOver, isPaused, currentBlock]);
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
     if (!currentBlock) return;
+
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
       currentBlock.map((row) => row[colIndex]).reverse()
     );
     setCurrentBlock(rotatedBlock); // Update the current block with the rotated block
+    // Find max length of the block
+    const maxLength = Math.max(...rotatedBlock.map((row) => row.length));
+
+    // if already reach the boundary to the right, rotate inside the boundary
+    if (blockPosition.x > 200 - maxLength * 10) {
+      setBlockPosition((prev) => ({
+        ...prev,
+        x: 200 - maxLength * 10,
+      })); // Prevent moving out of bounds
+    }
   };
 
   const moveLeft = () => {
@@ -199,8 +174,12 @@ export default function HomeScreen() {
   const moveDown = () => {
     // Logic to move the block down
     setBlockPosition((prev) => {
-      const newY = prev.y + 40;
-      if (newY >= 400 - currentBlock.length * 10) {
+      if (prev.y === 400 - currentBlock.length * 10) {
+        setReachedBottom(true); // Set reached bottom state
+        return prev;
+      }
+      let newY = prev.y + 10;
+      if (newY > 400 - currentBlock.length * 10) {
         spawnNewBlock();
         return prev;
       }
@@ -218,7 +197,7 @@ export default function HomeScreen() {
       <View style={styles.mainPlayerSection}>
         {/* Block types: not Reversed */}
         <View style={styles.blockList}>
-          <BlockList blockTypes={blockTypes} isReversed={false} />
+          <BlockList blockTypes={blocks} isReversed={false} />
         </View>
 
         {/* Play Yard  with score section */}
@@ -246,16 +225,6 @@ export default function HomeScreen() {
             >
               <Block type={currentBlock} />
             </View>
-
-            {/* <Animated.View
-              style={{
-                position: "absolute",
-                top: yNextPosition,
-                left: position.x,
-              }}
-            >
-              <Block type={nextBlock} />
-            </Animated.View> */}
           </View>
 
           {/* Score and record section */}
@@ -267,7 +236,7 @@ export default function HomeScreen() {
 
         {/* Block types: is Reversed*/}
         <View style={styles.blockList}>
-          <BlockList blockTypes={blockTypes} isReversed={true} />
+          <BlockList blockTypes={blocks} isReversed={true} />
         </View>
       </View>
       {/*  Divider */}
@@ -291,7 +260,12 @@ export default function HomeScreen() {
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity style={styles.button} onPress={rotateBlock}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              !reachedBottom && rotateBlock();
+            }}
+          >
             <Text>Rotate</Text>
           </TouchableOpacity>
 
@@ -313,7 +287,9 @@ export default function HomeScreen() {
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
               }}
-              onPress={moveLeft}
+              onPress={() => {
+                !reachedBottom && moveLeft();
+              }}
             >
               <Text>Left</Text>
             </TouchableOpacity>
@@ -352,14 +328,21 @@ export default function HomeScreen() {
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
               }}
-              onPress={() => moveRight()}
+              onPress={() => {
+                !reachedBottom && moveRight();
+              }}
             >
               <Text>Right</Text>
             </TouchableOpacity>
           </View>
 
           {/* Third row: Down */}
-          <TouchableOpacity style={styles.button} onPress={moveDown}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              !reachedBottom && moveDown();
+            }}
+          >
             <Text>Down</Text>
           </TouchableOpacity>
         </View>
