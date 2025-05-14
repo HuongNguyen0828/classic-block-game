@@ -43,8 +43,6 @@ const I = [[1], [1], [1], [1]];
 
 const blocks = [Z, T, O, L, I];
 
-const trackBox = []; // empty row
-
 const randomBlock = () => {
   const randomIndex = Math.floor(Math.random() * blocks.length);
   return blocks[randomIndex]; // Return the block type
@@ -96,10 +94,49 @@ export default function HomeScreen() {
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
   // Track of the score fore each row and column inside playground
-  const [scoreTrack, setScoreTrack] = useState(
-    Array.from({ length: 40 }, () => Array(19).fill(0))
+  const [playground, setPlayground] = useState(
+    Array.from({ length: 41 }, () => Array(20).fill(0))
   );
 
+  const collisionDetection = (block, position) => {
+    // Check boundaries first
+    if (position.x < 0 || position.y < 0) return true;
+    if (position.x + block[0].length * 10 > 200) return true; // Assuming 10px per block unit
+    if (position.y + block.length * 10 > 400) return true;
+
+    // Check against placed blocks
+    for (let row = 0; row < block.length; row++) {
+      for (let col = 0; col < block[row].length; col++) {
+        if (block[row][col] === 1) {
+          const blockX = position.x + col * 10;
+          const blockY = position.y + row * 10;
+
+          // Check each placed block
+          for (const placedBlock of placedBlocks) {
+            const placedX = placedBlock.position.x;
+            const placedY = placedBlock.position.y;
+            const placedType = placedBlock.type;
+
+            // Check if this block cell overlaps any placed block cell
+            for (let pRow = 0; pRow < placedType.length; pRow++) {
+              for (let pCol = 0; pCol < placedType[pRow].length; pCol++) {
+                if (placedType[pRow][pCol] === 1) {
+                  const placedCellX = placedX + pCol * 10;
+                  const placedCellY = placedY + pRow * 10;
+
+                  if (blockX === placedCellX && blockY === placedCellY) {
+                    return true; // Collision detected
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return false; // No collision
+  };
   // Spawn a new block
   const spawnNewBlock = () => {
     // Add current block to placed blocks before replacing it
@@ -162,6 +199,7 @@ export default function HomeScreen() {
 
     setBlockPosition((prev) => {
       let newX = prev.x - 10;
+
       if (newX < 0) newX = 0; // Prevent moving out of bounds
       return { ...prev, x: newX };
     }); // Update the block position
@@ -172,6 +210,7 @@ export default function HomeScreen() {
     // Logic to move the block right
     setBlockPosition((prev) => {
       let newX = prev.x + 10;
+
       if (newX > 200 - currentBlock[0].length * 10) {
         newX = 200 - currentBlock[0].length * 10; // Prevent moving out of bounds
       }
@@ -180,14 +219,23 @@ export default function HomeScreen() {
   };
 
   const moveDown = () => {
-    // Logic to move the block down
     setBlockPosition((prev) => {
+      // Logic to move the block down
+      let newY = prev.y + 10;
+      // Check for collision with the bottom or other blocks
+      if (collisionDetection(currentBlock, { ...prev, y: newY })) {
+        // If collision detected, set the block to the bottom
+        newY = prev.y; // Reset to the previous position
+        setReachedBottom(true); // Set reached bottom state
+        spawnNewBlock(); // Spawn a new block
+      }
+
+      // Check if the block has reached the bottom
       if (prev.y === 400 - currentBlock.length * 10) {
         setReachedBottom(true); // Set reached bottom state
         spawnNewBlock(); // Spawn a new block
-        return prev;
+        return { x: prev.x, y: prev.y };
       }
-      let newY = prev.y + 10;
       return { ...prev, y: newY };
     });
   };
@@ -261,8 +309,14 @@ export default function HomeScreen() {
 
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
-            <Text>Score</Text>
-            <Text>Record</Text>
+            <View style={{ height: "50%" }}>
+              <Text>Score</Text>
+              <Text>Record</Text>
+            </View>
+            <View style={{ height: "50%" }}>
+              <Text>Preview Next</Text>
+              <Block type={nextBlock} />
+            </View>
           </View>
         </View>
 
