@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
   Platform,
@@ -93,34 +93,31 @@ export default function HomeScreen() {
     Array.from({ length: 41 }, () => Array(20).fill(0))
   );
 
-  const collisionDetection = (block, position) => {
-    // Check boundaries first
-    if (position.x < 0 || position.y < 0) return true;
-    if (position.x + block[0].length * 10 > 200) return true; // Assuming 10px per block unit
-    if (position.y + block.length * 10 > 400) return true;
+  const collisionDetection = useCallback(
+    (block, position) => {
+      // Check against placed blocks
+      for (let row = 0; row < block.length; row++) {
+        for (let col = 0; col < block[row].length; col++) {
+          if (block[row][col] === 1) {
+            const blockX = position.x + col * 10;
+            const blockY = position.y + row * 10;
 
-    // Check against placed blocks
-    for (let row = 0; row < block.length; row++) {
-      for (let col = 0; col < block[row].length; col++) {
-        if (block[row][col] === 1) {
-          const blockX = position.x + col * 10;
-          const blockY = position.y + row * 10;
+            // Check each placed block
+            for (const placedBlock of placedBlocks) {
+              const placedX = placedBlock.position.x;
+              const placedY = placedBlock.position.y;
+              const placedType = placedBlock.type;
 
-          // Check each placed block
-          for (const placedBlock of placedBlocks) {
-            const placedX = placedBlock.position.x;
-            const placedY = placedBlock.position.y;
-            const placedType = placedBlock.type;
+              // Check if this block cell overlaps any placed block cell
+              for (let pRow = 0; pRow < placedType.length; pRow++) {
+                for (let pCol = 0; pCol < placedType[pRow].length; pCol++) {
+                  if (placedType[pRow][pCol] === 1) {
+                    const placedCellX = placedX + pCol * 10;
+                    const placedCellY = placedY + pRow * 10;
 
-            // Check if this block cell overlaps any placed block cell
-            for (let pRow = 0; pRow < placedType.length; pRow++) {
-              for (let pCol = 0; pCol < placedType[pRow].length; pCol++) {
-                if (placedType[pRow][pCol] === 1) {
-                  const placedCellX = placedX + pCol * 10;
-                  const placedCellY = placedY + pRow * 10;
-
-                  if (blockX === placedCellX && blockY === placedCellY) {
-                    return true; // Collision detected
+                    if (blockX === placedCellX && blockY === placedCellY) {
+                      return true; // Collision detected
+                    }
                   }
                 }
               }
@@ -128,12 +125,13 @@ export default function HomeScreen() {
           }
         }
       }
-    }
 
-    return false; // No collision
-  };
+      return false; // No collision
+    },
+    [placedBlocks]
+  );
   // Spawn a new block
-  const spawnNewBlock = () => {
+  const spawnNewBlock = useCallback(() => {
     // Add current block to placed blocks before replacing it
     setPlacedBlocks((prev) => [
       ...prev,
@@ -146,7 +144,7 @@ export default function HomeScreen() {
     setBlockPosition(randomPosition()); // Reset the block position
     setNextBlock(randomBlock()); // Generate a new next block
     setDisableButton(false); // Reset the disable button state
-  };
+  }, [currentBlock, blockPosition, nextBlock]);
 
   // Unified game loop
   useEffect(() => {
@@ -162,7 +160,7 @@ export default function HomeScreen() {
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
-    if (!currentBlock) return;
+    if (!currentBlock || isPaused || isReset || isGameOver) return; // Logic to move the block left
 
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
@@ -182,8 +180,7 @@ export default function HomeScreen() {
   };
 
   const moveLeft = () => {
-    if (!currentBlock) return;
-    // Logic to move the block left
+    if (!currentBlock || isPaused || isReset || isGameOver) return; // Logic to move the block left
 
     setBlockPosition((prev) => {
       let newX = prev.x - 10;
@@ -199,7 +196,7 @@ export default function HomeScreen() {
   };
 
   const moveRight = () => {
-    if (!currentBlock) return;
+    if (!currentBlock || isPaused || isReset || isGameOver) return;
     // Logic to move the block right
     setBlockPosition((prev) => {
       let newX = prev.x + 10;
@@ -215,27 +212,30 @@ export default function HomeScreen() {
     }); // Update the block position
   };
 
-  const moveDown = () => {
+  const moveDown = useCallback(() => {
+    // Disable button when
+    if (!currentBlock || isPaused || isReset || isGameOver) return;
+
     setBlockPosition((prev) => {
       // Logic to move the block down
-      let newY = prev.y + 10;
+      const newPosition = { ...prev, y: prev.y + 10 };
       // Check for collision with the bottom or other blocks
-      if (collisionDetection(currentBlock, { ...prev, y: newY })) {
+      if (collisionDetection(currentBlock, newPosition)) {
         // If collision detected, set the block to the bottom
-        newY = prev.y; // Reset to the previous position
         setDisableButton(true); // Set disable button state
         spawnNewBlock(); // Spawn a new block
+        return prev;
       }
 
       // Check if the block has reached the bottom
       if (prev.y === 400 - currentBlock.length * 10) {
         setDisableButton(true); // Set reached bottom state
         spawnNewBlock(); // Spawn a new block
-        return { x: prev.x, y: prev.y };
+        return prev;
       }
-      return { ...prev, y: newY };
+      return newPosition;
     });
-  };
+  }, [collisionDetection, currentBlock, spawnNewBlock]);
 
   const handleReset = () => {
     setIsReset(!isReset);
@@ -389,9 +389,7 @@ export default function HomeScreen() {
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
               }}
-              onPress={() => {
-                !disableButton && moveLeft();
-              }}
+              onPress={moveLeft}
             >
               <Text>Left</Text>
             </TouchableOpacity>
@@ -430,21 +428,14 @@ export default function HomeScreen() {
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
               }}
-              onPress={() => {
-                !disableButton && moveRight();
-              }}
+              onPress={moveRight}
             >
               <Text>Right</Text>
             </TouchableOpacity>
           </View>
 
           {/* Third row: Down */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              !disableButton && moveDown();
-            }}
-          >
+          <TouchableOpacity style={styles.button} onPress={moveDown}>
             <Text>Down</Text>
           </TouchableOpacity>
         </View>
