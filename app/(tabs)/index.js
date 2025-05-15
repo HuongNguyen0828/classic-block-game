@@ -160,7 +160,7 @@ export default function HomeScreen() {
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
-    if (!currentBlock || isPaused || isReset || isGameOver) return; // Logic to move the block left
+    if (!currentBlock || isPaused || isReset || isGameOver) return;
 
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
@@ -172,10 +172,7 @@ export default function HomeScreen() {
 
     // if already reach the boundary to the right, rotate inside the boundary
     if (blockPosition.x > 200 - maxLength * 10) {
-      setBlockPosition((prev) => ({
-        ...prev,
-        x: 200 - maxLength * 10,
-      })); // Prevent moving out of bounds
+      setBlockPosition({ ...blockPosition, x: 200 - maxLength * 10 }); // Prevent moving out of bounds
     }
   };
 
@@ -213,29 +210,46 @@ export default function HomeScreen() {
   };
 
   const moveDown = useCallback(() => {
-    // Disable button when
     if (!currentBlock || isPaused || isReset || isGameOver) return;
 
-    setBlockPosition((prev) => {
-      // Logic to move the block down
-      const newPosition = { ...prev, y: prev.y + 10 };
-      // Check for collision with the bottom or other blocks
-      if (collisionDetection(currentBlock, newPosition)) {
-        // If collision detected, set the block to the bottom
-        setDisableButton(true); // Set disable button state
-        spawnNewBlock(); // Spawn a new block
-        return prev;
-      }
+    const newPosition = {
+      x: blockPosition.x,
+      y: blockPosition.y + 10,
+    };
 
-      // Check if the block has reached the bottom
-      if (prev.y === 400 - currentBlock.length * 10) {
-        setDisableButton(true); // Set reached bottom state
-        spawnNewBlock(); // Spawn a new block
-        return prev;
-      }
-      return newPosition;
-    });
-  }, [collisionDetection, currentBlock, spawnNewBlock]);
+    const hasCollision = collisionDetection(currentBlock, newPosition);
+    const isAtBottom = blockPosition.y >= 400 - currentBlock.length * 10;
+
+    if (hasCollision || isAtBottom) {
+      setDisableButton(true);
+
+      // Add current block to placedBlocks and spawn new one
+      setPlacedBlocks((prev) => [
+        ...prev,
+        {
+          type: currentBlock,
+          position: blockPosition,
+        },
+      ]);
+
+      setCurrentBlock(nextBlock);
+      setBlockPosition(randomPosition());
+      setNextBlock(randomBlock());
+
+      return;
+    }
+
+    // If no collision and not at bottom, move down
+    setBlockPosition(newPosition);
+  }, [
+    blockPosition,
+    currentBlock,
+    nextBlock,
+    isPaused,
+    isReset,
+    isGameOver,
+    collisionDetection,
+  ]);
 
   const handleReset = () => {
     setIsReset(!isReset);
