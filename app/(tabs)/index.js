@@ -275,6 +275,7 @@ export default function HomeScreen() {
     setIsSoundOn(!isSoundOn);
   };
 
+  /// Now, need implement logic for record score and detech finised line
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
