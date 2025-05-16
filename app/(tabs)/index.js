@@ -15,41 +15,8 @@ import Box from "../../components/box";
 
 const { width, height } = Dimensions.get("window");
 
-const Z = [
-  [0, 1],
-  [1, 1],
-  [1, 0],
-];
-
-const T = [
-  [1, 0],
-  [1, 1],
-  [1, 0],
-];
-
-const O = [
-  [1, 1],
-  [1, 1],
-  //[null, null]
-];
-
-const L = [
-  [1, 0],
-  [1, 0],
-  [1, 1],
-];
-
-const I = [[1], [1], [1], [1]];
-
-const blocks = [Z, T, O, L, I];
-
-const randomBlock = () => {
-  const randomIndex = Math.floor(Math.random() * blocks.length);
-  return blocks[randomIndex]; // Return the block type
-};
-
 const randomPosition = (blockWidth = 20) => {
-  const minWidth = 30; //
+  const minWidth = 0; //
   const maxWidth = 200 - blockWidth; //
   const x =
     Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
@@ -68,6 +35,44 @@ for (let i = 0; i < 40; i++) {
 }
 
 export default function HomeScreen() {
+  // Clear value of the box
+  const [valueBox, setValueBox] = useState(1); // initALLY value = 1
+  // Track of the box need to clear out
+  const [clearRow, setClearRow] = useState([]); // initally empty block
+  const [count, setCount] = useState(0); // Count box up to 20: being full row
+  const [positionsToCheckAgainst, setPositionsToCheckAgainst] = useState([]);
+
+  const Z = [
+    [0, 1],
+    [1, 1],
+    [1, 0],
+  ];
+
+  const T = [
+    [1, 0],
+    [1, 1],
+    [1, 0],
+  ];
+
+  const O = [
+    [1, 1],
+    [1, 1],
+  ];
+
+  const L = [
+    [1, 0],
+    [1, 0],
+    [1, 1],
+  ];
+
+  const I = [[1], [1], [1], [1]];
+
+  const blocks = [Z, T, O, L, I];
+
+  const randomBlock = () => {
+    const randomIndex = Math.floor(Math.random() * blocks.length);
+    return blocks[randomIndex]; // Return the block type
+  };
   // Setting up state variables
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -83,14 +88,65 @@ export default function HomeScreen() {
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
-  const [score, setScore] = useState(0); // State to keep track of the score
+  const [score, setScore] = useState(20); // State to keep track of the score
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
-  // Track of the score fore each row and column inside playground
-  const [playground, setPlayground] = useState(
-    Array.from({ length: 41 }, () => Array(20).fill(0))
+  // Logic for clear full row and record score
+  /* 
+    Every time that currentBlock move down, check against all boxes of that currentBlock
+    If found any time that 20 boxes in same position.y (top position) inside PlacedBlock list, 
+        score++, and 
+        move all blocks that these box belonging to down 10px
+  */
+  const fullRowDetection = useCallback(
+    (block, position) => {
+      setPositionsToCheckAgainst([]);
+      for (let row = 0; row < block.length; row++) {
+        // Find each position.y at each row. Avoid duplicate position as at 1 row, there are MORE THAN 1 box
+        const blockPositionY = position.y + row * 10;
+        setPositionsToCheckAgainst((prev) => [...prev, blockPositionY]); // Adding each position of Valid box of current block into list of position
+      }
+
+      // Check again each Position inside positionsToCheckAgainst
+      for (const positionToCheck of positionsToCheckAgainst) {
+        // if up to 20, FullRow = true, update position
+
+        // For each block inside placed blocks
+        for (const placedBlock of placedBlocks) {
+          //Each block inside placedBlocks
+          const placedType = placedBlock.type;
+          // Position of each block inside placedBlocks
+          const placedY = placedBlock.position.y;
+
+          // Each cell inside each block
+          for (let row = 0; row < placedType.length; row++) {
+            for (let column = 0; column < placedType[row].length; column++) {
+              const boxXY = placedType[row][column];
+              // Extract position.y of each VAlID box (box === 1 )
+              const positionY = placedY.y + row * 10;
+              if (boxXY === 1 && positionY === positionToCheck) {
+                setCount((prev) => prev + 1); // update count
+                setValueBox(0);
+                setClearRow([...clearRow, boxXY]); // Adding new boxXY into clearRow
+              }
+            }
+          }
+        }
+
+        // If make up full row of 20 full boxes
+        if (count === 20) {
+          // Update score
+          setScore((prev) => prev + 1);
+          // Update value for all boxes to be be clear = 0
+          setValueBox(0);
+        }
+        // release the row to be clear
+        else setClearRow([]);
+      }
+    },
+    [clearRow, count, placedBlocks, positionsToCheckAgainst]
   );
 
   const collisionDetection = useCallback(
@@ -104,9 +160,11 @@ export default function HomeScreen() {
 
             // Check each placed block
             for (const placedBlock of placedBlocks) {
+              //Each block inside placedBlocks
+              const placedType = placedBlock.type;
+              // Position of each block inside placedBlocks
               const placedX = placedBlock.position.x;
               const placedY = placedBlock.position.y;
-              const placedType = placedBlock.type;
 
               // Check if this block cell overlaps any placed block cell
               for (let pRow = 0; pRow < placedType.length; pRow++) {
@@ -130,21 +188,6 @@ export default function HomeScreen() {
     },
     [placedBlocks]
   );
-  // Spawn a new block
-  const spawnNewBlock = useCallback(() => {
-    // Add current block to placed blocks before replacing it
-    setPlacedBlocks((prev) => [
-      ...prev,
-      {
-        type: currentBlock,
-        position: blockPosition,
-      },
-    ]);
-    setCurrentBlock(nextBlock); // Set the current block to the next block
-    setBlockPosition(randomPosition()); // Reset the block position
-    setNextBlock(randomBlock()); // Generate a new next block
-    setDisableButton(false); // Reset the disable button state
-  }, [currentBlock, blockPosition, nextBlock]);
 
   // Unified game loop
   useEffect(() => {
@@ -160,7 +203,7 @@ export default function HomeScreen() {
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
-    if (!currentBlock || isPaused || isReset || isGameOver) return;
+    if (!currentBlock || isPaused || isGameOver) return;
 
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
@@ -177,7 +220,7 @@ export default function HomeScreen() {
   };
 
   const moveLeft = () => {
-    if (!currentBlock || isPaused || isReset || isGameOver) return; // Logic to move the block left
+    if (!currentBlock || isPaused || isGameOver) return; // Logic to move the block left
 
     setBlockPosition((prev) => {
       let newX = prev.x - 10;
@@ -193,7 +236,7 @@ export default function HomeScreen() {
   };
 
   const moveRight = () => {
-    if (!currentBlock || isPaused || isReset || isGameOver) return;
+    if (!currentBlock || isPaused || isGameOver) return;
     // Logic to move the block right
     setBlockPosition((prev) => {
       let newX = prev.x + 10;
@@ -210,7 +253,7 @@ export default function HomeScreen() {
   };
 
   const moveDown = useCallback(() => {
-    if (!currentBlock || isPaused || isReset || isGameOver) return;
+    if (!currentBlock || isPaused || isGameOver) return;
 
     const newPosition = {
       x: blockPosition.x,
@@ -232,6 +275,10 @@ export default function HomeScreen() {
         },
       ]);
 
+      // Check against full row detection, and record score
+      fullRowDetection(currentBlock, blockPosition);
+
+      // Before Fetching new Block
       setCurrentBlock(nextBlock);
       setBlockPosition(randomPosition());
       setNextBlock(randomBlock());
@@ -246,13 +293,13 @@ export default function HomeScreen() {
     currentBlock,
     nextBlock,
     isPaused,
-    isReset,
     isGameOver,
     collisionDetection,
+    fullRowDetection,
+    randomBlock,
   ]);
 
   const handleReset = () => {
-    setIsReset(!isReset);
     setCurrentBlock(randomBlock());
     setBlockPosition(randomPosition());
     setPlacedBlocks([]); // Reset the placed blocks
@@ -260,6 +307,7 @@ export default function HomeScreen() {
     setDisableButton(false); // Reset the reached bottom state
     setIsGameOver(false); // Reset the game over state
     setIsPaused(false); // Reset the paused state
+    setIsReset(true);
   };
   const handlePause = () => {
     // are paused, now unpause, then set the button to be enabled
@@ -335,12 +383,24 @@ export default function HomeScreen() {
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
             <View style={{ height: "50%" }}>
-              <Text>Score</Text>
-              <Text>Record</Text>
+              <Text>Score: {score} </Text>
+              <Text>Record: </Text>
             </View>
-            <View style={{ height: "50%" }}>
+            <View style={{ height: "30%" }}>
               <Text>Preview Next</Text>
               <Block type={nextBlock} />
+            </View>
+            <View style={{ height: "20%" }}>
+              <Text>
+                Status:{" "}
+                {isPaused
+                  ? "Pause"
+                  : isGameOver
+                  ? "Game Over"
+                  : isReset
+                  ? "Reset"
+                  : "Play"}
+              </Text>
             </View>
           </View>
         </View>
@@ -377,12 +437,7 @@ export default function HomeScreen() {
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              !disableButton && rotateBlock();
-            }}
-          >
+          <TouchableOpacity style={styles.button} onPress={rotateBlock}>
             <Text>Rotate</Text>
           </TouchableOpacity>
 
