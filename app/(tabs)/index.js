@@ -15,6 +15,38 @@ import Box from "../../components/box";
 
 const { width, height } = Dimensions.get("window");
 
+const Z = [
+  [0, 1],
+  [1, 1],
+  [1, 0],
+];
+
+const T = [
+  [1, 0],
+  [1, 1],
+  [1, 0],
+];
+
+const O = [
+  [1, 1],
+  [1, 1],
+];
+
+const L = [
+  [1, 0],
+  [1, 0],
+  [1, 1],
+];
+
+const I = [[1], [1], [1], [1]];
+
+const blocks = [Z, T, O, L, I];
+
+const randomBlock = () => {
+  const randomIndex = Math.floor(Math.random() * blocks.length);
+  return blocks[randomIndex]; // Return the block type
+};
+
 const randomPosition = (blockWidth = 20) => {
   const minWidth = 0; //
   const maxWidth = 200 - blockWidth; //
@@ -35,44 +67,6 @@ for (let i = 0; i < 40; i++) {
 }
 
 export default function HomeScreen() {
-  // Clear value of the box
-  const [valueBox, setValueBox] = useState(1); // initALLY value = 1
-  // Track of the box need to clear out
-  const [clearRow, setClearRow] = useState([]); // initally empty block
-  const [count, setCount] = useState(0); // Count box up to 20: being full row
-  const [positionsToCheckAgainst, setPositionsToCheckAgainst] = useState([]);
-
-  const Z = [
-    [0, 1],
-    [1, 1],
-    [1, 0],
-  ];
-
-  const T = [
-    [1, 0],
-    [1, 1],
-    [1, 0],
-  ];
-
-  const O = [
-    [1, 1],
-    [1, 1],
-  ];
-
-  const L = [
-    [1, 0],
-    [1, 0],
-    [1, 1],
-  ];
-
-  const I = [[1], [1], [1], [1]];
-
-  const blocks = [Z, T, O, L, I];
-
-  const randomBlock = () => {
-    const randomIndex = Math.floor(Math.random() * blocks.length);
-    return blocks[randomIndex]; // Return the block type
-  };
   // Setting up state variables
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -88,66 +82,74 @@ export default function HomeScreen() {
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
-  const [score, setScore] = useState(20); // State to keep track of the score
+  const [score, setScore] = useState(0); // State to keep track of the score
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
   // Logic for clear full row and record score
   /* 
-    Every time that currentBlock move down, check against all boxes of that currentBlock
+    Every time that currentBlock move down, check against all the y position ( as each line Horizontally) of each currentBlock
     If found any time that 20 boxes in same position.y (top position) inside PlacedBlock list, 
         score++, and 
         move all blocks that these box belonging to down 10px
   */
-  const fullRowDetection = useCallback(
-    (block, position) => {
-      setPositionsToCheckAgainst([]);
-      for (let row = 0; row < block.length; row++) {
-        // Find each position.y at each row. Avoid duplicate position as at 1 row, there are MORE THAN 1 box
-        const blockPositionY = position.y + row * 10;
-        setPositionsToCheckAgainst((prev) => [...prev, blockPositionY]); // Adding each position of Valid box of current block into list of position
-      }
+  const getAllFilledCells = () => {
+    const filledCells = [];
 
-      // Check again each Position inside positionsToCheckAgainst
-      for (const positionToCheck of positionsToCheckAgainst) {
-        // if up to 20, FullRow = true, update position
+    for (const placedBlock of placedBlocks) {
+      const { type, position } = placedBlock;
 
-        // For each block inside placed blocks
-        for (const placedBlock of placedBlocks) {
-          //Each block inside placedBlocks
-          const placedType = placedBlock.type;
-          // Position of each block inside placedBlocks
-          const placedY = placedBlock.position.y;
-
-          // Each cell inside each block
-          for (let row = 0; row < placedType.length; row++) {
-            for (let column = 0; column < placedType[row].length; column++) {
-              const boxXY = placedType[row][column];
-              // Extract position.y of each VAlID box (box === 1 )
-              const positionY = placedY.y + row * 10;
-              if (boxXY === 1 && positionY === positionToCheck) {
-                setCount((prev) => prev + 1); // update count
-                setValueBox(0);
-                setClearRow([...clearRow, boxXY]); // Adding new boxXY into clearRow
-              }
-            }
+      for (let row = 0; row < type.length; row++) {
+        for (let col = 0; col < type[row].length; col++) {
+          if (type[row][col] === 1) {
+            const x = position.x + col * 10;
+            const y = position.y + row * 10;
+            filledCells.push({ x, y, block: placedBlock, row, col });
           }
         }
-
-        // If make up full row of 20 full boxes
-        if (count === 20) {
-          // Update score
-          setScore((prev) => prev + 1);
-          // Update value for all boxes to be be clear = 0
-          setValueBox(0);
-        }
-        // release the row to be clear
-        else setClearRow([]);
       }
-    },
-    [clearRow, count, placedBlocks, positionsToCheckAgainst]
-  );
+    }
+
+    return filledCells;
+  };
+
+  const fullRowDetection = useCallback(() => {
+    const filledCells = getAllFilledCells();
+
+    // Count how many cells exist in each row (y)
+    const rowCounts = {};
+    for (const cell of filledCells) {
+      rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1;
+    }
+
+    const fullRows = Object.keys(rowCounts)
+      .filter((y) => rowCounts[y] === 200 / 10) // 200px width, each cell is 10px wide => 20 cells
+      .map((y) => parseInt(y));
+
+    if (fullRows.length === 0) return;
+
+    setScore((prev) => prev + fullRows.length);
+
+    // Remove cells in full rows
+    const newPlacedBlocks = placedBlocks.map((block) => {
+      const newType = block.type.map((rowArr, rIdx) =>
+        rowArr.map((val, cIdx) => {
+          const y = block.position.y + rIdx * 10;
+          const x = block.position.x + cIdx * 10;
+
+          // Remove if in full row
+          return fullRows.includes(y) ? 0 : val;
+        })
+      );
+      return { ...block, type: newType };
+    });
+
+    setPlacedBlocks(newPlacedBlocks);
+
+    // Optional: Shift blocks above cleared rows down
+    // You'll likely need to implement logic to shift affected blocks down
+  }, [placedBlocks]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -323,7 +325,6 @@ export default function HomeScreen() {
     setIsSoundOn(!isSoundOn);
   };
 
-  /// Now, need implement logic for record score and detech finised line
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
@@ -384,7 +385,7 @@ export default function HomeScreen() {
           <View style={styles.scoreRecord}>
             <View style={{ height: "50%" }}>
               <Text>Score: {score} </Text>
-              <Text>Record: </Text>
+              <Text>Record:</Text>
             </View>
             <View style={{ height: "30%" }}>
               <Text>Preview Next</Text>
