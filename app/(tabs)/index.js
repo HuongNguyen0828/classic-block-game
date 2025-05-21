@@ -104,9 +104,10 @@ export default function HomeScreen() {
       for (let row = 0; row < type.length; row++) {
         for (let col = 0; col < type[row].length; col++) {
           if (type[row][col] === 1) {
-            const x = position.x + col * 10;
-            const y = position.y + row * 10;
-            filledCells.push({ x, y, block: placedBlock, row, col });
+            const x = position.x + col * 10; // left position of the cell
+            const y = position.y + row * 10; // top position of the cell
+            // a cell of value 1 with left and top position, which block belonging to and in which row and column
+            filledCells.push({ x, y, block: placedBlock, row, col }); //
           }
         }
       }
@@ -119,9 +120,9 @@ export default function HomeScreen() {
     const filledCells = getAllFilledCells();
 
     // Count how many cells exist in each row (y)
-    const rowCounts = {};
+    const rowCounts = {}; // a object: { 0: 1, 1: 3}
     for (const cell of filledCells) {
-      rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1;
+      rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, rowCounts = 0;
     }
 
     const fullRows = Object.keys(rowCounts)
@@ -145,7 +146,7 @@ export default function HomeScreen() {
       );
       return { ...block, type: newType };
     });
-    // Shift all above block
+    // Shift all above block 10 down
 
     setPlacedBlocks(newPlacedBlocks);
 
