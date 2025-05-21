@@ -83,6 +83,7 @@ export default function HomeScreen() {
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
+  const [pressDown, setPressDown] = useState(false); // initalize pressDown is false
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -196,12 +197,20 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
     // Animate the block down
     const gameInterval = setInterval(() => {
-      // Adding current block to the block list
-      moveDown(); // Move the block down every second
+      if (pressDown) moveDown(10);
+      else moveDown(1); // Move the block down every second
     }, 100);
 
     return () => clearInterval(gameInterval);
-  }, [isPaused, isGameOver, isReset, currentBlock, blockPosition, moveDown]);
+  }, [
+    isPaused,
+    isGameOver,
+    isReset,
+    currentBlock,
+    blockPosition,
+    moveDown,
+    pressDown,
+  ]);
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
@@ -254,52 +263,98 @@ export default function HomeScreen() {
     }); // Update the block position
   };
 
-  const moveDown = useCallback(() => {
-    if (!currentBlock || isPaused || isGameOver) return;
+  const moveDown = useCallback(
+    (speed) => {
+      if (!currentBlock || isPaused || isGameOver) return;
 
-    const newPosition = {
-      x: blockPosition.x,
-      y: blockPosition.y + 10,
-    };
+      let newPosition = {
+        x: blockPosition.x,
+        y: blockPosition.y + 10 * speed, // at vertically 10 more with speed fast
+      };
 
-    const hasCollision = collisionDetection(currentBlock, newPosition);
-    const isAtBottom = blockPosition.y >= 400 - currentBlock.length * 10;
+      const hasCollision = collisionDetection(currentBlock, newPosition);
+      const isAtBottom =
+        blockPosition.y >= 400 - currentBlock.length * 10 * speed;
 
-    if (hasCollision || isAtBottom) {
-      setDisableButton(true);
+      // Constrain when at bottom or has collision
 
-      // Add current block to placedBlocks and spawn new one
-      setPlacedBlocks((prev) => [
-        ...prev,
-        {
-          type: currentBlock,
-          position: blockPosition,
-        },
-      ]);
+      if (hasCollision || isAtBottom) {
+        // disable movement buttons
+        setDisableButton(true);
 
-      // Check against full row detection, and record score
-      fullRowDetection(currentBlock, blockPosition);
+        /* If at bottom and maybe also being collision but cannot detect (get over boundary), 
+        - move them to the bottom
+        - Checking collision, if not, leave it alone, else enter while collision loop
+        */
 
-      // Before Fetching new Block
-      setCurrentBlock(nextBlock);
-      setBlockPosition(randomPosition());
-      setNextBlock(randomBlock());
+        if (isAtBottom) {
+          setPlacedBlocks((prev) => [
+            ...prev,
+            {
+              type: currentBlock,
+              position: { ...blockPosition, y: 400 - currentBlock.length * 10 },
+            },
+          ]);
+        }
 
-      return;
-    }
+        // Checking hasCollision before atBottom
+        while (hasCollision) {
+          // hasCollision
 
-    // If no collision and not at bottom, move down
-    setBlockPosition(newPosition);
-  }, [
-    blockPosition,
-    currentBlock,
-    nextBlock,
-    isPaused,
-    isGameOver,
-    collisionDetection,
-    fullRowDetection,
-    randomBlock,
-  ]);
+          let stillCollision = true;
+          let testPosition = newPosition;
+          let whenStop = 0;
+          do {
+            whenStop++;
+
+            // Updating testPosition
+            testPosition = {
+              ...newPosition,
+              y: newPosition.y - 10 * whenStop, // move up 10 more if still collision, 10, 20, 30
+            };
+
+            // Checking collision
+            stillCollision = collisionDetection(currentBlock, testPosition);
+          } while (stillCollision);
+
+          // if collision, but not at bottom
+          setPlacedBlocks((prev) => [
+            ...prev, // keep the old ones
+            {
+              // adding new as current block
+              type: currentBlock,
+              position: testPosition, // at new position, butt - 10 as collision occurs
+            },
+          ]);
+        }
+
+        // Add current block to placedBlocks and spawn new one
+
+        // Check against full row detection, and record score
+        fullRowDetection(currentBlock, blockPosition);
+
+        // Before Fetching new Block
+        setCurrentBlock(nextBlock);
+        setBlockPosition(randomPosition());
+        setNextBlock(randomBlock());
+        setPressDown(false);
+
+        return;
+      }
+
+      // If no collision and not at bottom, move down
+      setBlockPosition(newPosition);
+    },
+    [
+      blockPosition,
+      currentBlock,
+      nextBlock,
+      isPaused,
+      isGameOver,
+      collisionDetection,
+      fullRowDetection,
+    ]
+  );
 
   const handleReset = () => {
     setCurrentBlock(randomBlock());
@@ -506,7 +561,10 @@ export default function HomeScreen() {
           </View>
 
           {/* Third row: Down */}
-          <TouchableOpacity style={styles.button} onPress={moveDown}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setPressDown(true)}
+          >
             <Text>Down</Text>
           </TouchableOpacity>
         </View>
