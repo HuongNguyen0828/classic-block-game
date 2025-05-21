@@ -295,12 +295,8 @@ export default function HomeScreen() {
               position: { ...blockPosition, y: 400 - currentBlock.length * 10 },
             },
           ]);
-        }
-
-        // Checking hasCollision before atBottom
-        while (hasCollision) {
-          // hasCollision
-
+        } else {
+          // case collision
           let stillCollision = true;
           let testPosition = newPosition;
           let whenStop = 0;
