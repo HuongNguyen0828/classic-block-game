@@ -288,17 +288,39 @@ export default function HomeScreen() {
         */
 
         if (isAtBottom) {
+          // initially set at bottom
+          let changedPosition = {
+            x: blockPosition.x,
+            y: 400 - currentBlock.length * 10,
+          };
+          let ifCollision = collisionDetection(currentBlock, changedPosition);
+          if (ifCollision) {
+            let whenStop = 0;
+            do {
+              whenStop++;
+
+              // Updating changedPosition
+              changedPosition = {
+                ...changedPosition,
+                y: changedPosition.y - 10 * whenStop, // move up 10 more if still collision, 10, 20, 30
+              };
+
+              // Checking collision
+              ifCollision = collisionDetection(currentBlock, changedPosition);
+            } while (ifCollision);
+          }
           setPlacedBlocks((prev) => [
-            ...prev,
+            ...prev, // keep the old ones
             {
+              // adding new as current block
               type: currentBlock,
-              position: { ...blockPosition, y: 400 - currentBlock.length * 10 },
+              position: changedPosition, // at new position, butt - 10 as collision occurs
             },
           ]);
         } else {
-          // case collision
-          let stillCollision = true;
+          // case collision without being at bottom
           let testPosition = newPosition;
+          let stillCollision = true;
           let whenStop = 0;
           do {
             whenStop++;
@@ -313,7 +335,6 @@ export default function HomeScreen() {
             stillCollision = collisionDetection(currentBlock, testPosition);
           } while (stillCollision);
 
-          // if collision, but not at bottom
           setPlacedBlocks((prev) => [
             ...prev, // keep the old ones
             {
