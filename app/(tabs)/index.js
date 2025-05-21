@@ -95,7 +95,7 @@ export default function HomeScreen() {
         score++, and 
         move all blocks that these box belonging to down 10px
   */
-  const getAllFilledCells = () => {
+  const getAllFilledCells = useCallback(() => {
     const filledCells = [];
 
     for (const placedBlock of placedBlocks) {
@@ -113,7 +113,7 @@ export default function HomeScreen() {
     }
 
     return filledCells;
-  };
+  }, [placedBlocks]);
 
   const fullRowDetection = useCallback(() => {
     const filledCells = getAllFilledCells();
@@ -145,12 +145,13 @@ export default function HomeScreen() {
       );
       return { ...block, type: newType };
     });
+    // Shift all above block
 
     setPlacedBlocks(newPlacedBlocks);
 
     // Optional: Shift blocks above cleared rows down
     // You'll likely need to implement logic to shift affected blocks down
-  }, [placedBlocks]);
+  }, [placedBlocks, getAllFilledCells]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -267,6 +268,9 @@ export default function HomeScreen() {
     (speed) => {
       if (!currentBlock || isPaused || isGameOver) return;
 
+      // Check against full row detection, and record score
+      fullRowDetection();
+
       let newPosition = {
         x: blockPosition.x,
         y: blockPosition.y + 10 * speed, // at vertically 10 more with speed fast
@@ -346,9 +350,6 @@ export default function HomeScreen() {
         }
 
         // Add current block to placedBlocks and spawn new one
-
-        // Check against full row detection, and record score
-        fullRowDetection(currentBlock, blockPosition);
 
         // Before Fetching new Block
         setCurrentBlock(nextBlock);
