@@ -122,15 +122,25 @@ export default function HomeScreen() {
     // Count how many cells exist in each row (y)
     const rowCounts = {}; // a object: { 0: 1, 1: 3}
     for (const cell of filledCells) {
-      rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, rowCounts = 0;
+      rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, index of rowCounts= 0, 1, 2, 3.
     }
 
     const fullRows = Object.keys(rowCounts)
       .filter((y) => rowCounts[y] === 200 / 10) // 200px width, each cell is 10px wide => 20 cells
       .map((y) => parseInt(y));
 
-    if (fullRows.length === 0) return;
+    if (fullRows.length === 0) return; // empty object
+    /* Else, for example:  fullRows = [1, 4] if 
+    rowCounts = {
+      0: 10, 
+      1: 20, 
+      2: 9, 
+      3: 7, 
+      4: 20
+    }
+    */
 
+    // update score:
     setScore((prev) => prev + fullRows.length);
 
     // Remove cells in full rows
@@ -141,14 +151,27 @@ export default function HomeScreen() {
           const x = block.position.x + cIdx * 10;
 
           // Remove if in full row
-          return fullRows.includes(y) ? 0 : val;
+          return fullRows.includes(y) ? 0 : val; // Map rowArr for each cell, if inside fullRow, remove it, else keep the value
         })
       );
       return { ...block, type: newType };
     });
     // Shift all above block 10 down
+    const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
+      // Check if position y is above of fullRow inside fullRows
+      const countShifts = fullRows.filter(
+        (fullRow) => block.position.y > fullRow
+      ).length; // count if it > each item, count++
+      // Update position of block.position.y
+      const newPosition = {
+        x: block.position.x,
+        y: block.position.y + 10 * countShifts,
+      };
 
-    setPlacedBlocks(newPlacedBlocks);
+      return { ...block, position: newPosition };
+    });
+
+    setPlacedBlocks(newPlacedBlocksShiftDown);
 
     //  Shift blocks above cleared rows down
   }, [placedBlocks, getAllFilledCells]);
@@ -287,8 +310,9 @@ export default function HomeScreen() {
         setDisableButton(true);
 
         /* If at bottom and maybe also being collision but cannot detect (get over boundary), 
-        - move them to the bottom
-        - Checking collision, if not, leave it alone, else enter while collision loop
+        - move it to the bottom
+        - Checking if collision, move newPosition 10 up backward, if not, leave it alone
+        - Render the placedList lastly
         */
 
         if (isAtBottom) {
