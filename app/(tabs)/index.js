@@ -150,8 +150,7 @@ export default function HomeScreen() {
 
     setPlacedBlocks(newPlacedBlocks);
 
-    // Optional: Shift blocks above cleared rows down
-    // You'll likely need to implement logic to shift affected blocks down
+    //  Shift blocks above cleared rows down
   }, [placedBlocks, getAllFilledCells]);
 
   const collisionDetection = useCallback(
@@ -277,7 +276,7 @@ export default function HomeScreen() {
         y: blockPosition.y + 10 * speed, // at vertically 10 more with speed fast
       };
 
-      const hasCollision = collisionDetection(currentBlock, newPosition);
+      let hasCollision = collisionDetection(currentBlock, newPosition);
       const isAtBottom =
         blockPosition.y >= 400 - currentBlock.length * 10 * speed;
 
@@ -293,62 +292,32 @@ export default function HomeScreen() {
         */
 
         if (isAtBottom) {
-          // initially set at bottom
-          let changedPosition = {
-            x: blockPosition.x,
-            y: 400 - currentBlock.length * 10,
-          };
-          let ifCollision = collisionDetection(currentBlock, changedPosition);
-          if (ifCollision) {
-            let whenStop = 0;
-            do {
-              whenStop++;
+          // Let them at the bottom first
+          newPosition = { ...blockPosition, y: 400 - currentBlock.length * 10 };
+        }
 
-              // Updating changedPosition
-              changedPosition = {
-                ...changedPosition,
-                y: changedPosition.y - 10 * whenStop, // move up 10 more if still collision, 10, 20, 30
-              };
-
-              // Checking collision
-              ifCollision = collisionDetection(currentBlock, changedPosition);
-            } while (ifCollision);
-          }
-          setPlacedBlocks((prev) => [
-            ...prev, // keep the old ones
-            {
-              // adding new as current block
-              type: currentBlock,
-              position: changedPosition, // at new position, butt - 10 as collision occurs
-            },
-          ]);
-        } else {
-          // case collision without being at bottom
-          let testPosition = newPosition;
-          let stillCollision = true;
-          let whenStop = 0;
+        // if collision occurs
+        if (collisionDetection(currentBlock, newPosition)) {
           do {
-            whenStop++;
-
             // Updating testPosition
-            testPosition = {
+            newPosition = {
               ...newPosition,
-              y: newPosition.y - 10 * whenStop, // move up 10 more if still collision, 10, 20, 30
+              y: newPosition.y - 10, // move up 10 more if still collision, 10, 20, 30
             };
 
             // Checking collision
-            stillCollision = collisionDetection(currentBlock, testPosition);
-          } while (stillCollision);
-
-          setPlacedBlocks((prev) => [
-            ...prev, // keep the old ones
-            {
-              // adding new as current block
-              type: currentBlock,
-              position: testPosition, // at new position, butt - 10 as collision occurs
-            },
-          ]);
+            hasCollision = collisionDetection(currentBlock, newPosition);
+          } while (hasCollision);
         }
+
+        setPlacedBlocks((prev) => [
+          ...prev, // keep the old ones
+          {
+            // adding new as current block
+            type: currentBlock,
+            position: newPosition, // at new position, butt - 10 as collision occurs
+          },
+        ]);
 
         // Add current block to placedBlocks and spawn new one
 
