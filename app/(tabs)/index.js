@@ -120,7 +120,7 @@ export default function HomeScreen() {
     const filledCells = getAllFilledCells();
 
     // Count how many cells exist in each row (y)
-    const rowCounts = {}; // a object: { 0: 1, 1: 3}
+    const rowCounts = {}; // a object: { "10": 1, "20": 3, "30": 10}
     for (const cell of filledCells) {
       rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, index of rowCounts= 0, 1, 2, 3.
     }
@@ -130,13 +130,13 @@ export default function HomeScreen() {
       .map((y) => parseInt(y));
 
     if (fullRows.length === 0) return; // empty object
-    /* Else, for example:  fullRows = [1, 4] if 
+    /* Else, for example:  fullRows = ["10", "40"] if 
     rowCounts = {
-      0: 10, 
-      1: 20, 
-      2: 9, 
-      3: 7, 
-      4: 20
+      "10": 10, 
+      "20": 20, 
+      "30": 9, 
+      "40": 7, 
+      "50": 20
     }
     */
 
@@ -156,23 +156,22 @@ export default function HomeScreen() {
       );
       return { ...block, type: newType };
     });
-    // Shift all above block 10 down
+    // Shift all above above and Equal of Y inside fullRow 10 down * times and inCase that value = 0
     const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
       let countShifts = 0;
       for (let row = 0; row < block.type.length; row++) {
         const y = block.position.y + row * 10;
 
         // Check count if it > AND = each item, count++
-        countShifts = fullRows.filter((fullRow) => y >= fullRow).length;
+        countShifts = fullRows.filter((row) => y >= row).length;
       }
-
-      return {
-        ...block,
-        position: {
-          x: block.position.x,
-          y: block.position.y + 10 * countShifts,
-        },
+      const newPosition = {
+        x: block.position.x,
+        y: block.position.y + 10 * countShifts,
       };
+      const newBlock = { ...block, position: newPosition };
+
+      return newBlock;
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown);

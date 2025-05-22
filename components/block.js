@@ -11,11 +11,13 @@ const Block = ({ type }) => {
             cell === 1 ? (
               <BoxBlock key={`${rowIndex}-${cellIndex}`} />
             ) : (
-              // Empty view for empty cells
-              <View
-                key={`${rowIndex}-${cellIndex}`}
-                style={{ width: 10, height: 10 }}
-              />
+              cell === 0 && (
+                // Empty view for empty cells
+                <View
+                  key={`${rowIndex}-${cellIndex}`}
+                  style={{ width: 10, height: 10 }}
+                />
+              )
             )
           )}
         </View>
