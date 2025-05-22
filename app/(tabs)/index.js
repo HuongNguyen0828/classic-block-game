@@ -158,17 +158,21 @@ export default function HomeScreen() {
     });
     // Shift all above block 10 down
     const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
-      // Check if position y is above of fullRow inside fullRows
-      const countShifts = fullRows.filter(
-        (fullRow) => block.position.y > fullRow
-      ).length; // count if it > each item, count++
-      // Update position of block.position.y
-      const newPosition = {
-        x: block.position.x,
-        y: block.position.y + 10 * countShifts,
-      };
+      let countShifts = 0;
+      for (let row = 0; row < block.type.length; row++) {
+        const y = block.position.y + row * 10;
 
-      return { ...block, position: newPosition };
+        // Check count if it > AND = each item, count++
+        countShifts = fullRows.filter((fullRow) => y >= fullRow).length;
+      }
+
+      return {
+        ...block,
+        position: {
+          x: block.position.x,
+          y: block.position.y + 10 * countShifts,
+        },
+      };
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown);
