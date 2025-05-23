@@ -83,6 +83,7 @@ export default function HomeScreen() {
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
+  const [level, setLevel] = useState(1);
   const [pressDown, setPressDown] = useState(false); // initalize pressDown is false
 
   // list of blocks to render
@@ -96,9 +97,6 @@ export default function HomeScreen() {
         move all blocks that these box belonging to down 10px
   */
 
-  const moveDownUpperBox = () => {
-    // Checking if
-  };
   const getAllFilledCells = useCallback(() => {
     const filledCells = [];
 
@@ -144,8 +142,11 @@ export default function HomeScreen() {
     }
     */
 
-    // update score:
-    setScore((prev) => prev + fullRows.length);
+    // update score: with level relationship
+    setScore((prev) => (prev + fullRows.length) * level);
+    // Update level
+    const odd = score / 5;
+    setLevel(parseInt(odd + 1));
 
     // Remove cells in full rows
     const newPlacedBlocks = placedBlocks.map((block) => {
@@ -182,7 +183,7 @@ export default function HomeScreen() {
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown);
-  }, [placedBlocks, getAllFilledCells]);
+  }, [placedBlocks, getAllFilledCells, score]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -230,7 +231,7 @@ export default function HomeScreen() {
     // Animate the block down
     const gameInterval = setInterval(() => {
       if (pressDown) moveDown(10);
-      else moveDown(1); // Move the block down every second
+      else moveDown(1 * level); // Move the block down every second
     }, 100);
 
     return () => clearInterval(gameInterval);
@@ -242,6 +243,7 @@ export default function HomeScreen() {
     blockPosition,
     moveDown,
     pressDown,
+    level,
   ]);
 
   // Default is rotating 90 degrees clockwise
@@ -391,7 +393,8 @@ export default function HomeScreen() {
     setCurrentBlock(randomBlock());
     setBlockPosition(randomPosition());
     setPlacedBlocks([]); // Reset the placed blocks
-    setScore(0); // Reset the score
+    setScore(0); // Reset the scores
+    setLevel(1);
     setDisableButton(false); // Reset the reached bottom state
     setIsGameOver(false); // Reset the game over state
     setIsPaused(false); // Reset the paused state
@@ -471,9 +474,9 @@ export default function HomeScreen() {
           <View style={styles.scoreRecord}>
             <View style={{ height: "50%" }}>
               <Text>Score: {score} </Text>
-              <Text>Record:</Text>
+              <Text>LeveL: {level} </Text>
             </View>
-            <View style={{ height: "30%" }}>
+            <View style={{ height: "30%", alignItems: "center" }}>
               <Text>Preview Next</Text>
               <Block type={nextBlock} />
             </View>
