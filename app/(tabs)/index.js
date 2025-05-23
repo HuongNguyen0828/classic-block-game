@@ -95,6 +95,10 @@ export default function HomeScreen() {
         score++, and 
         move all blocks that these box belonging to down 10px
   */
+
+  const moveDownUpperBox = () => {
+    // Checking if
+  };
   const getAllFilledCells = useCallback(() => {
     const filledCells = [];
 
@@ -156,27 +160,39 @@ export default function HomeScreen() {
       );
       return { ...block, type: newType };
     });
-    // Shift all above above and Equal of Y inside fullRow 10 down * times and inCase that value = 0
+
+    // Shifting all new block type above of the fullRow down after removing
+    //  Shift blocks above cleared rows down
     const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
-      let countShifts = 0;
-      for (let row = 0; row < block.type.length; row++) {
-        const y = block.position.y + row * 10;
+      const newBlockType = block.type; // Block Type
+      const newBlockPosition = block.position; // Block Position
 
-        // Check count if it > AND = each item, count++
-        countShifts = fullRows.filter((row) => y >= row).length;
-      }
-      const newPosition = {
-        x: block.position.x,
-        y: block.position.y + 10 * countShifts,
-      };
-      const newBlock = { ...block, position: newPosition };
+      const shiftedBlock = newBlockType.map((row, rowIdx) => {
+        const y = newBlockPosition.y + rowIdx * 10; // position In the same row
+        // Checking if row is upper
+        const countShifts = fullRows.filter((fullRow) => y >= fullRow).length;
+        if (countShifts === 0) return row; // if this row is lower than fulled row
 
-      return newBlock;
+        // Else, shift that row of that block down 10 * countShifts
+        const shiftedRow = row.map((cell, cellIdx) => {
+          const cellX = newBlockPosition.x + cellIdx * 10; //CURRENT position Y of the cell
+          const cellY = newBlockPosition.y + rowIdx * 10; //CURRENT position x of the cell
+
+          // New cell is a copy of upper cell (from filledCell)in the same x position, but y - 10
+          const newCell = filledCells.filter(
+            (fc) => fc.y === cellY - 10 && fc.x === cellX
+          );
+          return newCell;
+        });
+        return shiftedRow;
+      });
+
+      // Check count if it > AND = each item, count++. E.g. fullRows = {"10", "40"}, need to shift all cell has
+      // countShifts = fullRows.filter((fullRow) => y >= fullRow).length;
+      return shiftedBlock;
     });
 
-    setPlacedBlocks(newPlacedBlocksShiftDown);
-
-    //  Shift blocks above cleared rows down
+    setPlacedBlocks(newPlacedBlocks);
   }, [placedBlocks, getAllFilledCells]);
 
   const collisionDetection = useCallback(
