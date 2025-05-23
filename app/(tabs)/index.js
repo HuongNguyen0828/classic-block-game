@@ -341,16 +341,27 @@ export default function HomeScreen() {
 
         // if collision occurs
         if (collisionDetection(currentBlock, newPosition)) {
-          do {
+          newPosition = {
+            ...blockPosition,
+            y: blockPosition.y, // move up 10 more if still collision, 10, 20, 30
+          };
+          hasCollision = collisionDetection(currentBlock, newPosition);
+          while (!hasCollision) {
             // Updating testPosition
             newPosition = {
               ...newPosition,
-              y: newPosition.y - 10, // move up 10 more if still collision, 10, 20, 30
+              y: newPosition.y + 10, // move up 10 more if still collision, 10, 20, 30
             };
 
             // Checking collision
             hasCollision = collisionDetection(currentBlock, newPosition);
-          } while (hasCollision);
+          }
+
+          // Move backward 10 as already has collision
+          newPosition = {
+            ...newPosition,
+            y: newPosition.y - 10, // move up 10 more if still collision, 10, 20, 30
+          };
         }
 
         setPlacedBlocks((prev) => [
