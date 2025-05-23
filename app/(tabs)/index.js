@@ -156,7 +156,7 @@ export default function HomeScreen() {
           const x = block.position.x + cIdx * 10;
 
           // Remove if in full row
-          return fullRows.includes(y) ? 0 : val; // Map rowArr for each cell, if inside fullRow, remove it, else keep the value
+          return fullRows.includes(y) ? null : val; // Map rowArr for each cell, if inside fullRow, remove it, else keep the value
         })
       );
       return { ...block, type: newType };
@@ -301,7 +301,7 @@ export default function HomeScreen() {
     (speed) => {
       if (!currentBlock || isPaused || isGameOver) return;
 
-      // Check against full row detection, and record score
+      // Check against full row detection, and record score BEFORE SET placedBlocks
       fullRowDetection();
 
       let newPosition = {
@@ -355,6 +355,7 @@ export default function HomeScreen() {
           };
         }
 
+        // Add current block to placedBlocks and spawn new one
         setPlacedBlocks((prev) => [
           ...prev, // keep the old ones
           {
@@ -364,7 +365,8 @@ export default function HomeScreen() {
           },
         ]);
 
-        // Add current block to placedBlocks and spawn new one
+        // Check against full row detection, and record score AFTER SET placedBlocks
+        fullRowDetection();
 
         // Before Fetching new Block
         setCurrentBlock(nextBlock);
