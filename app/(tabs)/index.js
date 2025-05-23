@@ -164,35 +164,24 @@ export default function HomeScreen() {
     // Shifting all new block type above of the fullRow down after removing
     //  Shift blocks above cleared rows down
     const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
-      const newBlockType = block.type; // Block Type
-      const newBlockPosition = block.position; // Block Position
+      let countShifts = 0;
+      for (let row = 0; row < block.type.length; row++) {
+        const y = block.position.y + row * 10;
 
-      const shiftedBlock = newBlockType.map((row, rowIdx) => {
-        const y = newBlockPosition.y + rowIdx * 10; // position In the same row
-        // Checking if row is upper
-        const countShifts = fullRows.filter((fullRow) => y >= fullRow).length;
-        if (countShifts === 0) return row; // if this row is lower than fulled row
+        // Check count if it > AND = each item, count++
+        countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
+      }
 
-        // Else, shift that row of that block down 10 * countShifts
-        const shiftedRow = row.map((cell, cellIdx) => {
-          const cellX = newBlockPosition.x + cellIdx * 10; //CURRENT position Y of the cell
-          const cellY = newBlockPosition.y + rowIdx * 10; //CURRENT position x of the cell
+      const newPosition = {
+        x: block.position.x,
+        y: block.position.y + 10 * countShifts,
+      };
+      const newBlock = { ...block, position: newPosition };
 
-          // New cell is a copy of upper cell (from filledCell)in the same x position, but y - 10
-          const newCell = filledCells.filter(
-            (fc) => fc.y === cellY - 10 && fc.x === cellX
-          );
-          return newCell;
-        });
-        return shiftedRow;
-      });
-
-      // Check count if it > AND = each item, count++. E.g. fullRows = {"10", "40"}, need to shift all cell has
-      // countShifts = fullRows.filter((fullRow) => y >= fullRow).length;
-      return shiftedBlock;
+      return newBlock;
     });
 
-    setPlacedBlocks(newPlacedBlocks);
+    setPlacedBlocks(newPlacedBlocksShiftDown);
   }, [placedBlocks, getAllFilledCells]);
 
   const collisionDetection = useCallback(
