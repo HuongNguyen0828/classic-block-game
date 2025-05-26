@@ -149,7 +149,7 @@ export default function HomeScreen() {
     */
 
     // update score: with level relationship
-    setScore((prev) => (prev + fullRows.length) * level);
+    setScore((prev) => prev + fullRows.length * level);
     // Update level
     const odd = score / 5;
     setLevel(parseInt(odd + 1));
