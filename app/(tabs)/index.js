@@ -154,19 +154,32 @@ export default function HomeScreen() {
     const odd = score / 5;
     setLevel(parseInt(odd + 1));
 
-    // Remove cells in full rows
-    const newPlacedBlocks = placedBlocks.map((block) => {
-      const newType = block.type.map((rowArr, rIdx) =>
-        rowArr.map((val, cIdx) => {
-          const y = block.position.y + rIdx * 10;
-          const x = block.position.x + cIdx * 10;
+    // Remove blocks in full rows
+    const newPlacedBlocks = placedBlocks.reduce((acc, block) => {
+      // Check if the block is in a full row
+      const isInFullRow = block.type.some((rowArr, rIdx) => {
+        const y = block.position.y + rIdx * 10; // Calculate the top position of the row
+        return fullRows.includes(y); // Check if this row is in fullRows
+      });
 
-          // Remove if in full row
-          return fullRows.includes(y) ? null : val; // Map rowArr for each cell, if inside fullRow, remove it, else keep the value
-        })
-      );
-      return { ...block, type: newType };
-    });
+      if (!isInFullRow) {
+        acc.push(block); // Keep the block if it's not in a full row
+      }
+      return acc;
+    }, []);
+    // Remove cells in full rows
+    // const newPlacedBlocks = placedBlocks.map((block) => {
+    //   const newType = block.type.map((rowArr, rIdx) =>
+    //     rowArr.map((val, cIdx) => {
+    //       const y = block.position.y + rIdx * 10;
+    //       const x = block.position.x + cIdx * 10;
+
+    //       // Remove if in full row
+    //       return fullRows.includes(y) ? null : val; // Map rowArr for each cell, if inside fullRow, remove it, else keep the value
+    //     })
+    //   );
+    //   return { ...block, type: newType };
+    // });
 
     // Shifting all new block type above of the fullRow down after removing
     //  Shift blocks above cleared rows down
