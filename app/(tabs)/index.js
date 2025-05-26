@@ -156,16 +156,21 @@ export default function HomeScreen() {
 
     // Remove blocks in full rows
     const newPlacedBlocks = placedBlocks.reduce((acc, block) => {
+      const type = block.type; // Get the type of the block
+      const position = block.position; // Get the position of the block
       // Check if the block is in a full row
-      const isInFullRow = block.type.some((rowArr, rIdx) => {
-        const y = block.position.y + rIdx * 10; // Calculate the top position of the row
-        return fullRows.includes(y); // Check if this row is in fullRows
-      });
+      const newType = type.reduce((newRows, rowArr, rIdx) => {
+        const y = position.y + rIdx * 10; // Calculate the top position of the row
+        !fullRows.includes(y) && newRows.push(rowArr); // If the row is not in a full row, add it to the newRows array
+        return newRows; // Check if this row is in fullRows
+      }, []); // Reduce the type array to only include rows that are not in fullRows
 
-      if (!isInFullRow) {
-        acc.push(block); // Keep the block if it's not in a full row
-      }
-      return acc;
+      // Resemble the block with the new type
+      acc.push({
+        ...block,
+        type: newType, // Update the type of the block with the new type
+      });
+      return acc; // Return the accumulator
     }, []);
     // Remove cells in full rows
     // const newPlacedBlocks = placedBlocks.map((block) => {
@@ -183,25 +188,25 @@ export default function HomeScreen() {
 
     // Shifting all new block type above of the fullRow down after removing
     //  Shift blocks above cleared rows down
-    const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
-      let countShifts = 0;
-      for (let row = 0; row < block.type.length; row++) {
-        const y = block.position.y + row * 10;
+    // const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
+    //   let countShifts = 0;
+    //   for (let row = 0; row < block.type.length; row++) {
+    //     const y = block.position.y + row * 10;
 
-        // Check count if it > AND = each item, count++
-        countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
-      }
+    //     // Check count if it > AND = each item, count++
+    //     countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
+    //   }
 
-      const newPosition = {
-        x: block.position.x,
-        y: block.position.y + 10 * countShifts,
-      };
-      const newBlock = { ...block, position: newPosition };
+    //   const newPosition = {
+    //     x: block.position.x,
+    //     y: block.position.y + 10 * countShifts,
+    //   };
+    //   const newBlock = { ...block, position: newPosition };
 
-      return newBlock;
-    });
+    //   return newBlock;
+    // });
 
-    setPlacedBlocks(newPlacedBlocksShiftDown);
+    setPlacedBlocks(newPlacedBlocks);
   }, [placedBlocks, getAllFilledCells, score, level]);
 
   const collisionDetection = useCallback(
