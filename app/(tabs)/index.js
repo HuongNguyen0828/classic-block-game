@@ -172,7 +172,8 @@ export default function HomeScreen() {
       });
       return acc; // Return the accumulator
     }, []);
-    // Remove cells in full rows
+
+    //Remove cells in full rows
     // const newPlacedBlocks = placedBlocks.map((block) => {
     //   const newType = block.type.map((rowArr, rIdx) =>
     //     rowArr.map((val, cIdx) => {
@@ -186,27 +187,27 @@ export default function HomeScreen() {
     //   return { ...block, type: newType };
     // });
 
-    // Shifting all new block type above of the fullRow down after removing
-    //  Shift blocks above cleared rows down
-    // const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
-    //   let countShifts = 0;
-    //   for (let row = 0; row < block.type.length; row++) {
-    //     const y = block.position.y + row * 10;
+    //Shifting all new block type above of the fullRow down after removing
+    // Shift blocks above cleared rows down
+    const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
+      let countShifts = 0;
+      for (let row = 0; row < block.type.length; row++) {
+        const y = block.position.y + row * 10;
 
-    //     // Check count if it > AND = each item, count++
-    //     countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
-    //   }
+        // Check count if it > AND = each item, count++
+        countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
+      }
 
-    //   const newPosition = {
-    //     x: block.position.x,
-    //     y: block.position.y + 10 * countShifts,
-    //   };
-    //   const newBlock = { ...block, position: newPosition };
+      const newPosition = {
+        x: block.position.x,
+        y: block.position.y + 10 * countShifts,
+      };
+      const newBlock = { ...block, position: newPosition };
 
-    //   return newBlock;
-    // });
+      return newBlock;
+    });
 
-    setPlacedBlocks(newPlacedBlocks);
+    setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
   }, [placedBlocks, getAllFilledCells, score, level]);
 
   const collisionDetection = useCallback(
