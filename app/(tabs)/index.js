@@ -37,14 +37,20 @@ const L = [
   [1, 0],
   [1, 1],
 ];
+const Lreversed = [
+  [0, 1],
+  [0, 1],
+  [1, 1],
+];
 
 const I = [[1], [1], [1], [1]];
 
 const blocks = [Z, T, O, L, I];
 
 const randomBlock = () => {
-  const randomIndex = Math.floor(Math.random() * blocks.length);
-  return blocks[randomIndex]; // Return the block type
+  const blocksWithLReversed = [...blocks, Lreversed]; // Add Lreversed to the blocks array
+  const randomIndex = Math.floor(Math.random() * blocksWithLReversed.length);
+  return blocksWithLReversed[randomIndex]; // Return a random block from the array
 };
 
 const randomPosition = (blockWidth = 20) => {
@@ -183,7 +189,7 @@ export default function HomeScreen() {
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown);
-  }, [placedBlocks, getAllFilledCells, score]);
+  }, [placedBlocks, getAllFilledCells, score, level]);
 
   const collisionDetection = useCallback(
     (block, position) => {
