@@ -237,8 +237,8 @@ export default function HomeScreen() {
     // Animate the block down
     const gameInterval = setInterval(() => {
       if (pressDown) moveDown(10);
-      else moveDown(1 * level); // Move the block down every second
-    }, 100);
+      else moveDown(level); // Move the block down every second
+    }, 200);
 
     return () => clearInterval(gameInterval);
   }, [
