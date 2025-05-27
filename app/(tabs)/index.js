@@ -14,6 +14,8 @@ import BlockList from "../../components/block-list";
 import Box from "../../components/box";
 
 const { width, height } = Dimensions.get("window");
+const playGroundHeight = 300;
+const playGroundWidth = 200;
 
 const Z = [
   [0, 1],
@@ -55,7 +57,7 @@ const randomBlock = () => {
 
 const randomPosition = (blockWidth = 20) => {
   const minWidth = 0; //
-  const maxWidth = 200 - blockWidth; //
+  const maxWidth = playGroundWidth - blockWidth; //
   const x =
     Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
     minWidth;
@@ -65,7 +67,7 @@ const randomPosition = (blockWidth = 20) => {
 
 const boxes = [];
 
-for (let i = 0; i < 40; i++) {
+for (let i = 0; i < 30; i++) {
   boxes.push([]); // create a new row: 41 rows
   for (let j = 0; j < 19; j++) {
     boxes[i].push(1); // push 1 into each column of that row: 20 columns
@@ -91,7 +93,6 @@ export default function HomeScreen() {
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
   const [level, setLevel] = useState(1);
-  // const [speed, setSpeed] = useState(0.5);
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -320,8 +321,8 @@ export default function HomeScreen() {
         newX = prev.x; // Reset to the previous position
       }
 
-      if (newX > 200 - currentBlock[0].length * 10) {
-        newX = 200 - currentBlock[0].length * 10; // Prevent moving out of bounds
+      if (newX > playGroundWidth - currentBlock[0].length * 10) {
+        newX = playGroundWidth - currentBlock[0].length * 10; // Prevent moving out of bounds
       }
       return { ...prev, x: newX };
     }); // Update the block position
@@ -341,7 +342,7 @@ export default function HomeScreen() {
 
       let hasCollision = collisionDetection(currentBlock, newPosition);
       const isAtBottom =
-        blockPosition.y >= 400 - currentBlock.length * 10 * speed;
+        blockPosition.y >= playGroundHeight - currentBlock.length * 10 * speed;
 
       // Constrain when at bottom or has collision
 
@@ -357,7 +358,10 @@ export default function HomeScreen() {
 
         if (isAtBottom) {
           // Let them at the bottom first
-          newPosition = { ...blockPosition, y: 400 - currentBlock.length * 10 };
+          newPosition = {
+            ...blockPosition,
+            y: playGroundHeight - currentBlock.length * 10,
+          };
         }
 
         // if collision occurs
@@ -664,10 +668,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 5,
     shadowColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
   },
   mainPlayerYardwithScore: {
     width: 300, // 78% + 10% each for blockList = 98% = width of the main Player section
-    height: 400,
+    height: playGroundHeight,
     backgroundColor: "#E0E0E0",
     borderColor: "#000",
     borderWidth: 3,
@@ -686,18 +692,21 @@ const styles = StyleSheet.create({
   },
   controlArea: {
     width: "97%",
-    height: "35%", // 65% (main player section) + 35% (control area):
+    height: "50%", // 65% (main player section) + 35% (control area):
     backgroundColor: "#87CEEB",
     borderRadius: 5,
     flexDirection: "row",
   },
   blockList: {
-    width: 30,
+    paddingTop: 20,
+    width: 40,
+    height: "100%",
     backgroundColor: "#23CEEB",
+    alignItems: "center",
   },
   playground: {
-    width: 200, //200 px; 20 boxes of 10 px each
-    height: 400, // 400 px: 40 boxes of 10 px each
+    width: playGroundWidth, //200 px; 20 boxes of 10 px each
+    height: playGroundHeight, // 400 px: 40 boxes of 10 px each
     backgroundColor: "#F0F0E0",
     borderRadius: 3,
     borderColor: "#000",

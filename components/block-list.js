@@ -8,7 +8,12 @@ const BlockList = ({ blockTypes, isReversed }) => {
   );
   const blocksToRender = isReversed ? blockTypesReversed : blockTypes;
   return (
-    <View style={{ display: "flex", gap: 5 }}>
+    <View
+      style={{
+        display: "flex",
+        gap: 10,
+      }}
+    >
       {blocksToRender.map((blockType, index) => (
         // View for each block type
         <View key={index} style={styles.blockTypes}>
