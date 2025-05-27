@@ -127,6 +127,25 @@ export default function HomeScreen() {
     return filledCells;
   }, [placedBlocks]);
 
+  // Game over when any row of placedBlock has reach the height of playGroundHeight
+  const gameOverDetection = useCallback(() => {
+    const filledCells = getAllFilledCells();
+
+    // Track Count cells exist on each column
+    const rowCounts = {};
+    for (const cell of filledCells) {
+      rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1;
+    }
+    // exist cell at the height: top = 0
+    if (rowCounts["0"] != null) setIsGameOver(true);
+
+    // Clean up placedBlock if go over boundary
+
+    // const cleanedPlacedBlocks = placedBlocks((block))
+    // setPlacedBlocks(cleanedPlacedBlocks);
+  }, [getAllFilledCells]);
+
+  // Full row detection
   const fullRowDetection = useCallback(() => {
     const filledCells = getAllFilledCells();
 
@@ -156,8 +175,8 @@ export default function HomeScreen() {
     // Update level
     if (score > 5) {
       const odd = score / 5; // 5/ 5 = 1 (level 1), 6/ 6 (level 1), 10 (level 2)
-      setLevel((prev) => prev + odd);
-      if (time > 50) setTime((prev) => prev - 50);
+      setLevel(Math.floor(odd));
+      setTime((prev) => prev - 100);
     }
 
     // Remove blocks in full rows
@@ -178,20 +197,6 @@ export default function HomeScreen() {
       });
       return acc; // Return the accumulator
     }, []);
-
-    //Remove cells in full rows
-    // const newPlacedBlocks = placedBlocks.map((block) => {
-    //   const newType = block.type.map((rowArr, rIdx) =>
-    //     rowArr.map((val, cIdx) => {
-    //       const y = block.position.y + rIdx * 10;
-    //       const x = block.position.x + cIdx * 10;
-
-    //       // Remove if in full row
-    //       return fullRows.includes(y) ? null : val; // Map rowArr for each cell, if inside fullRow, remove it, else keep the value
-    //     })
-    //   );
-    //   return { ...block, type: newType };
-    // });
 
     //Shifting all new block type above of the fullRow down after removing
     // Shift blocks above cleared rows down
@@ -214,7 +219,7 @@ export default function HomeScreen() {
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
-  }, [placedBlocks, getAllFilledCells, score, time]);
+  }, [placedBlocks, getAllFilledCells, score]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -334,9 +339,12 @@ export default function HomeScreen() {
 
   const moveDown = useCallback(
     (speed) => {
+      //
+      gameOverDetection();
+
       if (!currentBlock || isPaused || isGameOver) return;
 
-      // Check against full row detection, and record score BEFORE SET placedBlocks
+      // Check against full row detection, and record score after SET placedBlocks
       fullRowDetection();
 
       let newPosition = {
@@ -403,7 +411,7 @@ export default function HomeScreen() {
           },
         ]);
 
-        // Check against full row detection, and record score AFTER SET placedBlocks
+        // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
         fullRowDetection();
 
         // Before Fetching new Block
@@ -427,6 +435,7 @@ export default function HomeScreen() {
       isGameOver,
       collisionDetection,
       fullRowDetection,
+      gameOverDetection,
     ]
   );
 
