@@ -93,6 +93,7 @@ export default function HomeScreen() {
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
   const [level, setLevel] = useState(1);
+  const [time, setTime] = useState(500);
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -136,7 +137,7 @@ export default function HomeScreen() {
     }
 
     const fullRows = Object.keys(rowCounts)
-      .filter((y) => rowCounts[y] === 200 / 10) // 200px width, each cell is 10px wide => 20 cells
+      .filter((y) => rowCounts[y] === playGroundWidth / 10) // 200px width, each cell is 10px wide => 20 cells
       .map((y) => parseInt(y));
 
     if (fullRows.length === 0) return; // empty object
@@ -151,10 +152,13 @@ export default function HomeScreen() {
     */
 
     // update score: with level relationship
-    setScore((prev) => prev + fullRows.length * level);
+    setScore((prev) => prev + fullRows.length);
     // Update level
-    const odd = score / 5;
-    setLevel(parseInt(odd + 1));
+    if (score > 5) {
+      const odd = score / 5; // 5/ 5 = 1 (level 1), 6/ 6 (level 1), 10 (level 2)
+      setLevel((prev) => prev + odd);
+      if (time > 50) setTime((prev) => prev - 50);
+    }
 
     // Remove blocks in full rows
     const newPlacedBlocks = placedBlocks.reduce((acc, block) => {
@@ -210,7 +214,7 @@ export default function HomeScreen() {
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
-  }, [placedBlocks, getAllFilledCells, score, level]);
+  }, [placedBlocks, getAllFilledCells, score, time]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -260,10 +264,9 @@ export default function HomeScreen() {
       if (pressDown) moveDown(20);
       else {
         // Move the block down every second
-        if (level > 1) moveDown(Math.floor(level - 0.5));
-        moveDown(0.5);
+        moveDown(1);
       }
-    }, 200);
+    }, time);
 
     return () => clearInterval(gameInterval);
   }, [
@@ -275,6 +278,7 @@ export default function HomeScreen() {
     moveDown,
     pressDown,
     level,
+    time,
   ]);
 
   // Default is rotating 90 degrees clockwise
@@ -290,7 +294,7 @@ export default function HomeScreen() {
     const maxLength = Math.max(...rotatedBlock.map((row) => row.length));
 
     // if already reach the boundary to the right, rotate inside the boundary
-    if (blockPosition.x > 200 - maxLength * 10) {
+    if (blockPosition.x > playGroundWidth - maxLength * 10) {
       setBlockPosition({ ...blockPosition, x: 200 - maxLength * 10 }); // Prevent moving out of bounds
     }
   };
@@ -407,6 +411,7 @@ export default function HomeScreen() {
         setBlockPosition(randomPosition());
         setNextBlock(randomBlock());
         setPressDown(false);
+        setTime(500);
 
         return;
       }
