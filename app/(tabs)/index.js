@@ -1,6 +1,7 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Platform,
   SafeAreaView,
@@ -138,9 +139,30 @@ export default function HomeScreen() {
     }
 
     // exist cell at the height: top = 0
-    if (rowCounts["0"] != null)
+    if (rowCounts["0"] != null) {
       // 1. Set Game Over
       setIsGameOver(true);
+
+      // Alert: either Quit (out of game: Pause ) or Continue (meaning same as Reset)
+      Alert.alert("Game Over", "Do you want to play again or Quit?", [
+        {
+          text: "Play Again",
+          onPress: () => {
+            console.log("Continue Pressed");
+            setIsReset(true);
+          },
+          style: "default",
+        },
+        {
+          text: "Quit",
+          onPress: () => {
+            console.log("Quit Pressed");
+            setIsPaused(true);
+          },
+          style: "destructive",
+        },
+      ]);
+    }
   }, [getAllFilledCells]);
 
   // Full row detection
@@ -339,7 +361,6 @@ export default function HomeScreen() {
     (speed) => {
       //
       gameOverDetection();
-
       if (!currentBlock || isPaused || isGameOver) return;
 
       // Check against full row detection, and record score after SET placedBlocks
@@ -399,36 +420,23 @@ export default function HomeScreen() {
           };
         }
 
-        const newPlacedBlocks = [
-          ...placedBlocks,
-          {
-            // adding new as current block
-            type: currentBlock,
-            position: newPosition, // at new position, butt - 10 as collision occurs
-          },
-        ];
+        // CHeck if the current block get over boundary: on top : y < 0
 
-        // If over Boundary on the top
-        const cleanedPlacedBlocks = newPlacedBlocks.reduce((acc, block) => {
-          const type = block.type; // Get the type of the block
-          const position = block.position; // Get the position of the block
-          // Check if the block is in a full row
-          const newType = type.reduce((newRows, rowArr, rIdx) => {
-            const y = position.y + rIdx * 10; // Calculate the top position of the row
-            y >= 0 && newRows.push(rowArr); // Just include row that y >= 0
-            return newRows; // Check if this row is in fullRows
-          }, []); // Reduce the type array to only include rows that are not in fullRows
+        const cleanedBlock = currentBlock.map((row, rIdx) => {
+          const yRow = newPosition.y + rIdx * 10;
+          if (yRow >= 0) return row;
+          const newRow = row.map((cel) => 0);
+          return newRow;
+        });
+        const newBlock = {
+          // adding new as current block
+          type: cleanedBlock,
+          position: newPosition, // at new position, butt - 10 as collision occurs
+        };
 
-          // Resemble the block with the new type
-          acc.push({
-            ...block,
-            type: newType, // Update the type of the block with the new type
-          });
-          return acc; // Return the accumulator
-        }, []);
-
+        const newPlacedBlocks = [...placedBlocks, newBlock];
         // Add current block to placedBlocks and spawn new one
-        setPlacedBlocks(cleanedPlacedBlocks);
+        setPlacedBlocks(newPlacedBlocks);
 
         // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
         fullRowDetection();
@@ -454,8 +462,8 @@ export default function HomeScreen() {
       isGameOver,
       collisionDetection,
       fullRowDetection,
-      gameOverDetection,
       placedBlocks,
+      gameOverDetection,
     ]
   );
 
