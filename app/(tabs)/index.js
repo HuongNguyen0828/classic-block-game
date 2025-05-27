@@ -261,7 +261,7 @@ export default function HomeScreen() {
       else {
         // Move the block down every second
         if (level > 1) moveDown(Math.floor(level - 0.5));
-        moveDown(1);
+        moveDown(0.5);
       }
     }, 200);
 
