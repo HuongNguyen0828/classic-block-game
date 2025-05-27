@@ -85,12 +85,13 @@ export default function HomeScreen() {
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
+  const [pressDown, setPressDown] = useState(false); // initalize pressDown is false
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
   const [level, setLevel] = useState(1);
-  const [pressDown, setPressDown] = useState(false); // initalize pressDown is false
+  // const [speed, setSpeed] = useState(0.5);
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -255,8 +256,12 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
     // Animate the block down
     const gameInterval = setInterval(() => {
-      if (pressDown) moveDown(10);
-      else moveDown(level); // Move the block down every second
+      if (pressDown) moveDown(20);
+      else {
+        // Move the block down every second
+        if (level > 1) moveDown(Math.floor(level - 0.5));
+        moveDown(1);
+      }
     }, 200);
 
     return () => clearInterval(gameInterval);
