@@ -13,6 +13,7 @@ import {
 import Block from "../../components/block";
 import BlockList from "../../components/block-list";
 import Box from "../../components/box";
+import FullRow from "../../components/fullRow";
 
 const { width, height } = Dimensions.get("window");
 const playGroundHeight = 300;
@@ -95,6 +96,7 @@ export default function HomeScreen() {
   const [score, setScore] = useState(0); // State to keep track of the score
   const [level, setLevel] = useState(1);
   const [time, setTime] = useState(500);
+  const [fullRowsDetected, setFullRowDetected] = useState([]); // For styling before clearing out of placedBlocks
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -189,7 +191,8 @@ export default function HomeScreen() {
       "50": 20
     }
     */
-
+    // Render Full row Dectection to fullRowsDetected for styling before clearing
+    setFullRowDetected(fullRows);
     // update score: with level relationship
     setScore((prev) => prev + fullRows.length);
     // Update level
@@ -540,7 +543,23 @@ export default function HomeScreen() {
                   left: item.position.x,
                 }}
               >
-                <Block type={item.type} />
+                <Block type={item.type}>
+                  {fullRowsDetected.map((row, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        position: "absolute",
+                        top: row,
+                        left: 0,
+                        color: "red",
+                        borderRadius: 5,
+                        borderColor: "red",
+                      }}
+                    >
+                      <FullRow />
+                    </View>
+                  ))}
+                </Block>
               </View>
             ))}
 
