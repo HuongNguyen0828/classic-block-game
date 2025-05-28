@@ -55,7 +55,7 @@ const Lreversed = [
 const I = [[1], [1], [1], [1]];
 
 const blocks = [Z, T, O, L, I];
-
+const defaultTime = 700;
 const randomBlock = () => {
   const blocksWithLReversed = [...blocks, Lreversed, Zreversed]; // Add Lreversed to the blocks array
   const randomIndex = Math.floor(Math.random() * blocksWithLReversed.length);
@@ -99,8 +99,8 @@ export default function HomeScreen() {
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
-  const [level, setLevel] = useState(1);
-  const [time, setTime] = useState(500);
+  const [level, setLevel] = useState(0);
+  const [time, setTime] = useState(defaultTime);
   const [fullRowsDetected, setFullRowDetected] = useState([]); // For styling before clearing out of placedBlocks
 
   // list of blocks to render
@@ -201,11 +201,12 @@ export default function HomeScreen() {
     // update score: with level relationship
     setScore((prev) => prev + fullRows.length);
     // Update level
-    if (score > 5) {
-      const odd = score / 5; // 5/ 5 = 1 (level 1), 6/ 6 (level 1), 10 (level 2)
-      setLevel(Math.floor(odd));
-      setTime((prev) => prev - 100);
-    }
+    const odd = score / 5; // 5/ 5 = 1 (level 1), 6/ 6 (level 1), 10 (level 2)
+    setLevel(Math.floor(odd));
+    time > 100 && setTime(defaultTime - 100 * level); //level 0, 1, 2, 3, 4, 5, 6, time = 700, 600, 500, 400, 300, 100
+    level === 7 && setTime(80);
+    level === 8 && setTime(60);
+    level === 9 && setTime(40);
 
     // Remove blocks in full rows
     const newPlacedBlocks = placedBlocks.reduce((acc, block) => {
@@ -247,7 +248,7 @@ export default function HomeScreen() {
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
-  }, [placedBlocks, getAllFilledCells, score]);
+  }, [placedBlocks, getAllFilledCells, score, level, time]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -294,7 +295,7 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
     // Animate the block down
     const gameInterval = setInterval(() => {
-      if (pressDown) moveDown(20);
+      if (pressDown) moveDown(30);
       else {
         // Move the block down every second
         moveDown(1);
@@ -310,6 +311,7 @@ export default function HomeScreen() {
     blockPosition,
     moveDown,
     pressDown,
+    score,
     level,
     time,
   ]);
@@ -464,8 +466,6 @@ export default function HomeScreen() {
         setBlockPosition(randomPosition());
         setNextBlock(randomBlock());
         setPressDown(false);
-        setTime(500);
-
         return;
       }
 
@@ -495,6 +495,7 @@ export default function HomeScreen() {
     setIsGameOver(false); // Reset the game over state
     setIsPaused(false); // Reset the paused state
     setIsReset(true);
+    setTime(defaultTime);
   };
   const handlePause = () => {
     // are paused, now unpause, then set the button to be enabled
@@ -587,6 +588,7 @@ export default function HomeScreen() {
             <View style={{ height: "50%" }}>
               <Text>Score: {score} </Text>
               <Text>LeveL: {level} </Text>
+              <Text>Time: {time}</Text>
             </View>
             <View style={{ height: "30%", alignItems: "center" }}>
               <Text>Preview Next</Text>
