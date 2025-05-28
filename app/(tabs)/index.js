@@ -310,6 +310,9 @@ export default function HomeScreen() {
   const rotateBlock = () => {
     if (!currentBlock || isPaused || isGameOver) return;
 
+    // When rotate, still falling down
+    moveDown();
+
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
       currentBlock.map((row) => row[colIndex]).reverse()
@@ -327,6 +330,9 @@ export default function HomeScreen() {
   const moveLeft = () => {
     if (!currentBlock || isPaused || isGameOver) return; // Logic to move the block left
 
+    // When move left, still falling down
+    moveDown();
+
     setBlockPosition((prev) => {
       let newX = prev.x - 10;
       // Check if the block collides with the placed blocks
@@ -342,6 +348,10 @@ export default function HomeScreen() {
 
   const moveRight = () => {
     if (!currentBlock || isPaused || isGameOver) return;
+
+    // When move Right, still falling down
+    moveDown();
+
     // Logic to move the block right
     setBlockPosition((prev) => {
       let newX = prev.x + 10;
@@ -358,7 +368,7 @@ export default function HomeScreen() {
   };
 
   const moveDown = useCallback(
-    (speed) => {
+    (speed = 1) => {
       //
       gameOverDetection();
       if (!currentBlock || isPaused || isGameOver) return;
