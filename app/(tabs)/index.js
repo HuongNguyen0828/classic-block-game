@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -94,7 +94,10 @@ export default function HomeScreen() {
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
-  const [pressDown, setPressDown] = useState(false); // initalize pressDown is false
+  const [longPressDown, setLongPressDown] = useState(false); // initalize pressDown is false
+  const [doubleClickDown, setDoubleClickDown] = useState(false);
+
+  const lastTap = useRef(null);
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
@@ -295,7 +298,8 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
     // Animate the block down
     const gameInterval = setInterval(() => {
-      if (pressDown) moveDown(30);
+      if (longPressDown) moveDown(30);
+      if (doubleClickDown) moveDown(3);
       else {
         // Move the block down every second
         moveDown(1);
@@ -310,10 +314,11 @@ export default function HomeScreen() {
     currentBlock,
     blockPosition,
     moveDown,
-    pressDown,
+    longPressDown,
     score,
     level,
     time,
+    doubleClickDown,
   ]);
 
   // Default is rotating 90 degrees clockwise
@@ -379,7 +384,7 @@ export default function HomeScreen() {
 
   const moveDown = useCallback(
     (speed = 1) => {
-      //
+      // Check if game over
       gameOverDetection();
       if (!currentBlock || isPaused || isGameOver) return;
 
@@ -465,7 +470,8 @@ export default function HomeScreen() {
         setCurrentBlock(nextBlock);
         setBlockPosition(randomPosition());
         setNextBlock(randomBlock());
-        setPressDown(false);
+        setLongPressDown(false);
+        setDoubleClickDown(false);
         return;
       }
 
@@ -711,7 +717,24 @@ export default function HomeScreen() {
           {/* Third row: Down */}
           <TouchableOpacity
             style={styles.button}
-            onPress={() => setPressDown(true)}
+            onPress={
+              // Check if is Double click
+              () => {
+                const now = Date.now();
+                const DOUBLE_PRESS_DELAY = 300; // milliseconds
+
+                if (
+                  lastTap.current &&
+                  now - lastTap.current < DOUBLE_PRESS_DELAY
+                ) {
+                  // Move triple speed
+                  setDoubleClickDown(true);
+                } else {
+                  lastTap.current = now;
+                }
+              }
+            }
+            onLongPress={() => setLongPressDown(true)}
           >
             <Text>Down</Text>
           </TouchableOpacity>
