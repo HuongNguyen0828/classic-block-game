@@ -24,6 +24,11 @@ const Z = [
   [1, 1],
   [1, 0],
 ];
+const Zreversed = [
+  [1, 0],
+  [1, 1],
+  [0, 1],
+];
 
 const T = [
   [1, 0],
@@ -52,7 +57,7 @@ const I = [[1], [1], [1], [1]];
 const blocks = [Z, T, O, L, I];
 
 const randomBlock = () => {
-  const blocksWithLReversed = [...blocks, Lreversed]; // Add Lreversed to the blocks array
+  const blocksWithLReversed = [...blocks, Lreversed, Zreversed]; // Add Lreversed to the blocks array
   const randomIndex = Math.floor(Math.random() * blocksWithLReversed.length);
   return blocksWithLReversed[randomIndex]; // Return a random block from the array
 };
