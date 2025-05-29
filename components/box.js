@@ -19,4 +19,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     opacity: 0.2,
   },
+  innerBlock: {
+    width: "80%",
+    height: "80%",
+    backgroundColor: "#4A4A4A",
+    borderRadius: 1,
+    margin: "auto",
+  },
 });

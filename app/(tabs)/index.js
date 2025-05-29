@@ -94,7 +94,7 @@ export default function HomeScreen() {
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
-  const [longPressDown, setLongPressDown] = useState(false); // initalize pressDown is false
+  const [quickDown, setQuickDown] = useState(false); // initalize pressDown is false
   const [doubleClickDown, setDoubleClickDown] = useState(false);
 
   const lastTap = useRef(null);
@@ -298,7 +298,7 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
     // Animate the block down
     const gameInterval = setInterval(() => {
-      if (longPressDown) moveDown(30);
+      if (quickDown) moveDown(30);
       if (doubleClickDown) moveDown(3);
       else {
         // Move the block down every second
@@ -314,7 +314,7 @@ export default function HomeScreen() {
     currentBlock,
     blockPosition,
     moveDown,
-    longPressDown,
+    quickDown,
     score,
     level,
     time,
@@ -470,7 +470,7 @@ export default function HomeScreen() {
         setCurrentBlock(nextBlock);
         setBlockPosition(randomPosition());
         setNextBlock(randomBlock());
-        setLongPressDown(false);
+        setQuickDown(false);
         setDoubleClickDown(false);
         return;
       }
@@ -625,30 +625,45 @@ export default function HomeScreen() {
       {/* Control section */}
       <View style={styles.controlArea}>
         {/* Setting: Pause, Sound, Reset */}
-        <View style={styles.settingArea}>
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handlePause}
-          >
-            <Text>Pause</Text>
-          </TouchableOpacity>
+        <View
+          style={{
+            display: "flex",
+          }}
+        >
+          <View style={styles.settingArea}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handlePause}
+            >
+              <Text>Pause</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.secondaryButton}>
-            <Text>Sound</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryButton}>
+              <Text>Sound</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.secondaryButton, styles.reset]}
-            onPress={handleReset}
-          >
-            <Text>Reset</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.reset]}
+              onPress={handleReset}
+            >
+              <Text>Reset</Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            {/* Rotate button */}
+            <TouchableOpacity style={styles.rotateButton} onPress={rotateBlock}>
+              <Text>Rotate</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity style={styles.button} onPress={rotateBlock}>
-            <Text>Rotate</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setQuickDown(true)}
+          >
+            <Text>Quick</Text>
           </TouchableOpacity>
 
           {/* Second row: Left - icons - Right */}
@@ -668,6 +683,13 @@ export default function HomeScreen() {
                 alignItems: "center",
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
+                shadowOffset: {
+                  width: 1,
+                  height: 1,
+                },
+                shadowOpacity: 0.5,
+                shadowRadius: 2,
+                elevation: 5,
               }}
               onPress={moveLeft}
             >
@@ -678,7 +700,7 @@ export default function HomeScreen() {
             <View
               style={{
                 width: "40%",
-                backgroundColor: "#D3D3D3",
+                // backgroundColor: "#D3D3D3",
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -690,6 +712,13 @@ export default function HomeScreen() {
                   alignItems: "center",
                   flexDirection: "row",
                   gap: "25%",
+                  shadowOffset: {
+                    width: 1,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.5,
+                  shadowRadius: 3.84,
+                  elevation: 5,
                 }}
               >
                 <AntDesign name="caretleft" size={24} color="black" />
@@ -707,6 +736,13 @@ export default function HomeScreen() {
                 alignItems: "center",
                 backgroundColor: "#FFDD00",
                 borderRadius: 60,
+                shadowOffset: {
+                  width: 1,
+                  height: 2,
+                },
+                shadowOpacity: 0.5,
+                shadowRadius: 3.84,
+                elevation: 5,
               }}
               onPress={moveRight}
             >
@@ -734,7 +770,6 @@ export default function HomeScreen() {
                 }
               }
             }
-            onLongPress={() => setLongPressDown(true)}
           >
             <Text>Down</Text>
           </TouchableOpacity>
@@ -792,7 +827,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   controlArea: {
-    width: "97%",
+    width: "100%",
     height: "50%", // 65% (main player section) + 35% (control area):
     backgroundColor: "#87CEEB",
     borderRadius: 5,
@@ -823,38 +858,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#D3D3D3",
   },
   settingArea: {
-    width: "50%",
-    height: "100%",
-
+    width: width / 2,
+    height: "30%",
     flexDirection: "row",
     gap: 5,
+    // backgroundColor: "purple",
+    alignItems: "center",
   },
   arrowArea: {
     width: "50%",
     height: "90%",
-    backgroundColor: "#D3D3D3",
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
     flexDirection: "column",
   },
   button: {
-    width: "30%",
+    width: "35%",
     height: "20%",
     backgroundColor: "#FFDD00", // yellow: full red + green
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 60,
+    borderRadius: 50,
+    shadowOffset: {
+      width: 1,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   secondaryButton: {
-    width: "25%",
-    height: "15%",
+    width: "30%",
+    height: "50%",
     backgroundColor: "#70CC70", // lighter green
     borderWidth: 1,
-    borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
-    margin: 5,
     borderRadius: 60,
     shadowColor: "#000",
     shadowOffset: {
@@ -881,5 +921,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+
+  rotateButton: {
+    marginTop: 0,
+    marginHorizontal: "auto",
+    width: "70%",
+    height: "60%",
+    backgroundColor: "yellow",
+    borderRadius: 90,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 3,
+      height: 1,
+    },
+    shadowOpacity: 0.5,
   },
 });
