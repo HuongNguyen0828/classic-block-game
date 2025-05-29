@@ -299,7 +299,6 @@ export default function HomeScreen() {
     // Animate the block down
     const gameInterval = setInterval(() => {
       if (quickDown) moveDown(30);
-      if (doubleClickDown) moveDown(3);
       else {
         // Move the block down every second
         moveDown(1);
