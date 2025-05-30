@@ -96,11 +96,9 @@ export default function HomeScreen() {
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
   const [quickDown, setQuickDown] = useState(false); // initalize pressDown is false
-  const [doubleClickDown, setDoubleClickDown] = useState(false);
-  const [isLeft, setIsLeft] = useState(false);
-
-  const currentTime = useRef(); // To track of current time before LongPress
-  const lastTap = useRef(null);
+  const [isMovingLeft, setIsMovingLeft] = useState(false);
+  const [isMovingRight, setIsMovingRight] = useState(false);
+  const [isLongPressDown, setIsLongPressDown] = useState(false);
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
@@ -111,6 +109,8 @@ export default function HomeScreen() {
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
+
+  const currentTime = useRef(time); // To track of current time before LongPress
 
   // Logic for clear full row and record score
   /* 
@@ -299,6 +299,9 @@ export default function HomeScreen() {
   // Unified game loop
   useEffect(() => {
     if (isGameOver || isPaused) return;
+
+    if (isLongPressDown) setTime(50); // Make time for faster speed
+    else setTime(currentTime.current); // Back to normal time
     // Animate the block down
     const gameInterval = setInterval(() => {
       moveDown(1);
@@ -310,16 +313,34 @@ export default function HomeScreen() {
   }, [
     isPaused,
     isGameOver,
-    isReset,
     currentBlock,
     blockPosition,
     moveDown,
-    quickDown,
-    score,
-    level,
     time,
-    doubleClickDown,
+    isLongPressDown,
   ]);
+
+  // Continuous left movement while holding the button
+  useEffect(() => {
+    if (!isMovingLeft || isPaused || isGameOver) return;
+
+    const interval = setInterval(() => {
+      moveLeft();
+    }, 50); // Adjust speed (ms) for responsiveness
+
+    return () => clearInterval(interval);
+  }, [isMovingLeft, isPaused, isGameOver, moveLeft]);
+
+  // Continuous right movement while holding the button
+  useEffect(() => {
+    if (!isMovingRight || isPaused || isGameOver) return;
+
+    const interval = setInterval(() => {
+      moveRight();
+    }, 50); // Same as left for consistency
+
+    return () => clearInterval(interval);
+  }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
@@ -342,8 +363,10 @@ export default function HomeScreen() {
   const moveLeft = useCallback(
     (speed) => {
       if (!currentBlock || isPaused || isGameOver) return; // Logic to move the block left
+      if (speed === 0) return;
+
       setBlockPosition((prev) => {
-        let newX = prev.x - 10 * speed;
+        let newX = prev.x - 10;
         // Check if the block collides with the placed blocks
         if (collisionDetection(currentBlock, { ...prev, x: newX })) {
           newX = prev.x; // Reset to the previous position
@@ -354,15 +377,15 @@ export default function HomeScreen() {
         return { ...prev, x: newX };
       }); // Update the block position
     },
-    [isPaused, currentBlock, collisionDetection, isGameOver]
+    [isPaused, isGameOver, collisionDetection, currentBlock]
   );
 
-  const moveRight = (speed) => {
+  const moveRight = useCallback(() => {
     if (!currentBlock || isPaused || isGameOver) return;
 
     // Logic to move the block right
     setBlockPosition((prev) => {
-      let newX = prev.x + 10 * speed;
+      let newX = prev.x + 10;
       // Check for collision with the right boundary
       if (collisionDetection(currentBlock, { ...prev, x: newX })) {
         newX = prev.x; // Reset to the previous position
@@ -373,7 +396,13 @@ export default function HomeScreen() {
       }
       return { ...prev, x: newX };
     }); // Update the block position
-  };
+  }, [
+    currentBlock,
+    setBlockPosition,
+    isPaused,
+    isGameOver,
+    collisionDetection,
+  ]);
 
   const moveDown = useCallback(
     (speed = 1) => {
@@ -459,12 +488,13 @@ export default function HomeScreen() {
         // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
         fullRowDetection();
 
-        // Before Fetching new Block
+        setIsLongPressDown(false); // // Before Fetching new Block
+
         setCurrentBlock(nextBlock);
         setBlockPosition(randomPosition());
         setNextBlock(randomBlock());
-        setQuickDown(false);
-        setDoubleClickDown(false);
+        setQuickDown(false); // Set quckDown is false
+
         return;
       }
 
@@ -681,8 +711,9 @@ export default function HomeScreen() {
                 shadowRadius: 2,
                 elevation: 5,
               }}
-              onPressIn={() => moveLeft(3)}
-              onPressOut={() => moveLeft(0)}
+              onPress={moveLeft}
+              onPressIn={() => setIsMovingLeft(true)}
+              onPressOut={() => setIsMovingLeft(false)}
             >
               <Text>Left</Text>
             </TouchableOpacity>
@@ -735,8 +766,9 @@ export default function HomeScreen() {
                 shadowRadius: 3.84,
                 elevation: 5,
               }}
-              onPressIn={() => moveRight(3)}
-              onPressOut={() => moveRight(0)}
+              onPress={moveRight}
+              onPressIn={() => setIsMovingRight(true)}
+              onPressOut={() => setIsMovingRight(false)}
             >
               <Text>Right</Text>
             </TouchableOpacity>
@@ -745,8 +777,9 @@ export default function HomeScreen() {
           {/* Third row: Down */}
           <TouchableOpacity
             style={styles.button}
-            onPressIn={() => moveDown(3)}
-            onPressOut={() => moveDown(1)}
+            onPress={() => moveDown(3)}
+            onPressIn={() => setIsLongPressDown(true)}
+            onPressOut={() => setIsLongPressDown(false)}
           >
             <Text>Down</Text>
           </TouchableOpacity>
