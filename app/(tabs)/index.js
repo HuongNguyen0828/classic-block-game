@@ -18,7 +18,7 @@ import FullRow from "../../components/fullRow";
 const { width, height } = Dimensions.get("window");
 const playGroundHeight = 300;
 const playGroundWidth = 200;
-const defaultTime = 700;
+const defaultTime = 500;
 
 const Z = [
   [0, 1],
@@ -296,55 +296,10 @@ export default function HomeScreen() {
     [placedBlocks]
   );
 
-  // Unified game loop
-  useEffect(() => {
-    if (isGameOver || isPaused) return;
-
-    if (isLongPressDown) setTime(50); // Make time for faster speed
-    else setTime(currentTime.current); // Back to normal time
-    // Animate the block down
-    const gameInterval = setInterval(() => {
-      moveDown(1);
-    }, time);
-
-    return () => {
-      clearInterval(gameInterval);
-    };
-  }, [
-    isPaused,
-    isGameOver,
-    currentBlock,
-    blockPosition,
-    moveDown,
-    time,
-    isLongPressDown,
-  ]);
-
-  // Continuous left movement while holding the button
-  useEffect(() => {
-    if (!isMovingLeft || isPaused || isGameOver) return;
-
-    const interval = setInterval(() => {
-      moveLeft();
-    }, 50); // Adjust speed (ms) for responsiveness
-
-    return () => clearInterval(interval);
-  }, [isMovingLeft, isPaused, isGameOver, moveLeft]);
-
-  // Continuous right movement while holding the button
-  useEffect(() => {
-    if (!isMovingRight || isPaused || isGameOver) return;
-
-    const interval = setInterval(() => {
-      moveRight();
-    }, 50); // Same as left for consistency
-
-    return () => clearInterval(interval);
-  }, [isMovingRight, isPaused, isGameOver, moveRight]);
-
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
     if (!currentBlock || isPaused || isGameOver) return;
+    console.log("rotate");
 
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
@@ -408,7 +363,8 @@ export default function HomeScreen() {
     (speed = 1) => {
       // Check if game over
       gameOverDetection();
-      if (!currentBlock || isPaused || isGameOver) return;
+
+      console.log("moveDown");
 
       // Check against full row detection, and record score after SET placedBlocks
       fullRowDetection();
@@ -539,6 +495,43 @@ export default function HomeScreen() {
   const handleSound = () => {
     setIsSoundOn(!isSoundOn);
   };
+  // Unified game loop
+  useEffect(() => {
+    if (isGameOver || isPaused) return;
+
+    if (isLongPressDown) setTime(50); // Make time for faster speed
+    else setTime(currentTime.current); // Back to normal time
+    // Animate the block down
+    const gameInterval = setInterval(() => {
+      moveDown(1);
+    }, time);
+
+    return () => {
+      clearInterval(gameInterval);
+    };
+  }, [isPaused, isGameOver, blockPosition, moveDown, time, isLongPressDown]);
+
+  // Continuous left movement while holding the button
+  useEffect(() => {
+    if (!isMovingLeft || isPaused || isGameOver) return;
+
+    const interval = setInterval(() => {
+      moveLeft();
+    }, 50); // Adjust speed (ms) for responsiveness
+
+    return () => clearInterval(interval);
+  }, [isMovingLeft, isPaused, isGameOver, moveLeft]);
+
+  // Continuous right movement while holding the button
+  useEffect(() => {
+    if (!isMovingRight || isPaused || isGameOver) return;
+
+    const interval = setInterval(() => {
+      moveRight();
+    }, 50); // Same as left for consistency
+
+    return () => clearInterval(interval);
+  }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
   return (
     <SafeAreaView style={styles.container}>
