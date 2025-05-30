@@ -18,6 +18,7 @@ import FullRow from "../../components/fullRow";
 const { width, height } = Dimensions.get("window");
 const playGroundHeight = 300;
 const playGroundWidth = 200;
+const defaultTime = 700;
 
 const Z = [
   [0, 1],
@@ -55,7 +56,7 @@ const Lreversed = [
 const I = [[1], [1], [1], [1]];
 
 const blocks = [Z, T, O, L, I];
-const defaultTime = 700;
+
 const randomBlock = () => {
   const blocksWithLReversed = [...blocks, Lreversed, Zreversed]; // Add Lreversed to the blocks array
   const randomIndex = Math.floor(Math.random() * blocksWithLReversed.length);
@@ -96,7 +97,9 @@ export default function HomeScreen() {
   const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
   const [quickDown, setQuickDown] = useState(false); // initalize pressDown is false
   const [doubleClickDown, setDoubleClickDown] = useState(false);
+  const [isLeft, setIsLeft] = useState(false);
 
+  const currentTime = useRef(); // To track of current time before LongPress
   const lastTap = useRef(null);
 
   // Set the next block position
@@ -298,14 +301,12 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
     // Animate the block down
     const gameInterval = setInterval(() => {
-      if (quickDown) moveDown(30);
-      else {
-        // Move the block down every second
-        moveDown(1);
-      }
+      moveDown(1);
     }, time);
 
-    return () => clearInterval(gameInterval);
+    return () => {
+      clearInterval(gameInterval);
+    };
   }, [
     isPaused,
     isGameOver,
@@ -324,9 +325,6 @@ export default function HomeScreen() {
   const rotateBlock = () => {
     if (!currentBlock || isPaused || isGameOver) return;
 
-    // When rotate, still falling down
-    moveDown();
-
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
       currentBlock.map((row) => row[colIndex]).reverse()
@@ -341,34 +339,30 @@ export default function HomeScreen() {
     }
   };
 
-  const moveLeft = () => {
-    if (!currentBlock || isPaused || isGameOver) return; // Logic to move the block left
+  const moveLeft = useCallback(
+    (speed) => {
+      if (!currentBlock || isPaused || isGameOver) return; // Logic to move the block left
+      setBlockPosition((prev) => {
+        let newX = prev.x - 10 * speed;
+        // Check if the block collides with the placed blocks
+        if (collisionDetection(currentBlock, { ...prev, x: newX })) {
+          newX = prev.x; // Reset to the previous position
+        }
+        if (newX < 0) {
+          newX = 0; // Prevent moving out of bounds
+        }
+        return { ...prev, x: newX };
+      }); // Update the block position
+    },
+    [isPaused, currentBlock, collisionDetection, isGameOver]
+  );
 
-    // When move left, still falling down
-    moveDown();
-
-    setBlockPosition((prev) => {
-      let newX = prev.x - 10;
-      // Check if the block collides with the placed blocks
-      if (collisionDetection(currentBlock, { ...prev, x: newX })) {
-        newX = prev.x; // Reset to the previous position
-      }
-      if (newX < 0) {
-        newX = 0; // Prevent moving out of bounds
-      }
-      return { ...prev, x: newX };
-    }); // Update the block position
-  };
-
-  const moveRight = () => {
+  const moveRight = (speed) => {
     if (!currentBlock || isPaused || isGameOver) return;
-
-    // When move Right, still falling down
-    moveDown();
 
     // Logic to move the block right
     setBlockPosition((prev) => {
-      let newX = prev.x + 10;
+      let newX = prev.x + 10 * speed;
       // Check for collision with the right boundary
       if (collisionDetection(currentBlock, { ...prev, x: newX })) {
         newX = prev.x; // Reset to the previous position
@@ -658,10 +652,7 @@ export default function HomeScreen() {
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setQuickDown(true)}
-          >
+          <TouchableOpacity style={styles.button} onPress={() => moveDown(20)}>
             <Text>Quick</Text>
           </TouchableOpacity>
 
@@ -690,7 +681,8 @@ export default function HomeScreen() {
                 shadowRadius: 2,
                 elevation: 5,
               }}
-              onPress={moveLeft}
+              onPressIn={() => moveLeft(3)}
+              onPressOut={() => moveLeft(0)}
             >
               <Text>Left</Text>
             </TouchableOpacity>
@@ -743,7 +735,8 @@ export default function HomeScreen() {
                 shadowRadius: 3.84,
                 elevation: 5,
               }}
-              onPress={moveRight}
+              onPressIn={() => moveRight(3)}
+              onPressOut={() => moveRight(0)}
             >
               <Text>Right</Text>
             </TouchableOpacity>
@@ -752,23 +745,8 @@ export default function HomeScreen() {
           {/* Third row: Down */}
           <TouchableOpacity
             style={styles.button}
-            onPress={
-              // Check if is Double click
-              () => {
-                const now = Date.now();
-                const DOUBLE_PRESS_DELAY = 300; // milliseconds
-
-                if (
-                  lastTap.current &&
-                  now - lastTap.current < DOUBLE_PRESS_DELAY
-                ) {
-                  // Move triple speed
-                  setDoubleClickDown(true);
-                } else {
-                  lastTap.current = now;
-                }
-              }
-            }
+            onPressIn={() => moveDown(3)}
+            onPressOut={() => moveDown(1)}
           >
             <Text>Down</Text>
           </TouchableOpacity>
