@@ -97,6 +97,7 @@ export default function HomeScreen() {
   const [isMovingLeft, setIsMovingLeft] = useState(false);
   const [isMovingRight, setIsMovingRight] = useState(false);
   const [isLongPressDown, setIsLongPressDown] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
@@ -111,8 +112,7 @@ export default function HomeScreen() {
   const currentTime = useRef(time); // To track of current time before LongPress
   const realTimePosition = useRef(blockPosition);
 
-  const [lastPress, setLastPress] = useState(0);
-  const [pressList, setPressList] = useState([]);
+  const [rotationStartTime, setRotationStartTime] = useState(null);
 
   // Logic for clear full row and record score
   /* 
@@ -300,7 +300,7 @@ export default function HomeScreen() {
 
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
-    if (!currentBlock || isPaused || isGameOver) return;
+    if (!currentBlock || isPaused || isGameOver || disableButton) return;
     console.log("rotate");
 
     // Logic to rotate the block
@@ -317,14 +317,22 @@ export default function HomeScreen() {
         ...blockPosition,
         x: playGroundWidth - maxLength * 10,
       };
+      setBlockPosition(newRotatedPosition); // Prevent moving out of bounds
+      realTimePosition.current = newRotatedPosition;
+    }
 
+    if (blockPosition.y > playGroundHeight - rotateBlock.length * 10) {
+      const newRotatedPosition = {
+        ...blockPosition,
+        y: playGroundHeight - rotateBlock.length * 10,
+      };
       setBlockPosition(newRotatedPosition); // Prevent moving out of bounds
       realTimePosition.current = newRotatedPosition;
     }
   };
 
   const moveLeft = useCallback(() => {
-    if (!currentBlock || isPaused || isGameOver) return;
+    if (!currentBlock || isPaused || isGameOver || disableButton) return;
 
     const newPosition = {
       ...realTimePosition.current,
@@ -338,7 +346,7 @@ export default function HomeScreen() {
 
     realTimePosition.current = newPosition;
     setBlockPosition(newPosition);
-  }, [currentBlock, isPaused, isGameOver, collisionDetection]);
+  }, [currentBlock, isPaused, isGameOver, collisionDetection, disableButton]);
 
   const moveRight = useCallback(() => {
     if (!currentBlock || isPaused || isGameOver) return;
@@ -364,7 +372,7 @@ export default function HomeScreen() {
       // Check if game over
       gameOverDetection();
 
-      if ((isGameOver, isPaused)) return;
+      if ((isGameOver, isPaused || disableButton)) return;
 
       console.log("moveDown");
 
@@ -388,7 +396,9 @@ export default function HomeScreen() {
         - move it to the bottom
         - Checking if collision, move newPosition 10 up backward, if not, leave it alone
         - Render the placedList lastly
+        
         */
+        setDisableButton(true);
 
         if (isAtBottom) {
           // Let them at the bottom first
@@ -451,6 +461,7 @@ export default function HomeScreen() {
         realTimePosition.current = newRandomPosition;
         setBlockPosition(newRandomPosition);
         setNextBlock(randomBlock());
+        setDisableButton(false);
 
         return;
       }
@@ -468,6 +479,7 @@ export default function HomeScreen() {
       fullRowDetection,
       placedBlocks,
       gameOverDetection,
+      disableButton,
     ]
   );
 
@@ -509,8 +521,9 @@ export default function HomeScreen() {
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
   const handleReset = () => {
+    const randomPositionReset = randomPosition();
     setCurrentBlock(randomBlock());
-    setBlockPosition(randomPosition());
+    setBlockPosition(randomPositionReset);
     setPlacedBlocks([]); // Reset the placed blocks
     setScore(0); // Reset the scores
     setLevel(1);
@@ -518,6 +531,8 @@ export default function HomeScreen() {
     setIsPaused(false); // Reset the paused state
     setIsReset(true);
     setTime(defaultTime);
+    realTimePosition.current = randomPositionReset;
+    setDisableButton(false);
   };
   const handlePause = () => {
     setIsPaused(!isPaused);
@@ -659,7 +674,25 @@ export default function HomeScreen() {
           </View>
           <View>
             {/* Rotate button */}
-            <TouchableOpacity style={styles.rotateButton} onPress={rotateBlock}>
+            <TouchableOpacity
+              style={styles.rotateButton}
+              onPress={() => {
+                const now = Date.now();
+
+                if (rotationStartTime === null) {
+                  // First press
+                  setRotationStartTime(now);
+                  rotateBlock();
+                } else if (now - rotationStartTime <= time) {
+                  // Still within period: allow rotation
+                  rotateBlock();
+                } else {
+                  // Time expired: reset start time, block rotation this time
+                  console.log("expired");
+                  setRotationStartTime(now);
+                }
+              }}
+            >
               <Text>Rotate</Text>
             </TouchableOpacity>
           </View>
