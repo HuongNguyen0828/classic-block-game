@@ -94,8 +94,6 @@ export default function HomeScreen() {
   const block = randomBlock(); // call it once, not multiple times
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
-  const [disableButton, setDisableButton] = useState(false); // State to check if the block reached the bottom
-  const [quickDown, setQuickDown] = useState(false); // initalize pressDown is false
   const [isMovingLeft, setIsMovingLeft] = useState(false);
   const [isMovingRight, setIsMovingRight] = useState(false);
   const [isLongPressDown, setIsLongPressDown] = useState(false);
@@ -111,6 +109,8 @@ export default function HomeScreen() {
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
   const currentTime = useRef(time); // To track of current time before LongPress
+  const realTimePosition = useRef(blockPosition);
+  const countTime = useRef(0);
 
   // Logic for clear full row and record score
   /* 
@@ -315,54 +315,48 @@ export default function HomeScreen() {
     }
   };
 
-  const moveLeft = useCallback(
-    (speed) => {
-      if (!currentBlock || isPaused || isGameOver) return; // Logic to move the block left
-      if (speed === 0) return;
+  const moveLeft = useCallback(() => {
+    if (!currentBlock || isPaused || isGameOver) return;
 
-      setBlockPosition((prev) => {
-        let newX = prev.x - 10;
-        // Check if the block collides with the placed blocks
-        if (collisionDetection(currentBlock, { ...prev, x: newX })) {
-          newX = prev.x; // Reset to the previous position
-        }
-        if (newX < 0) {
-          newX = 0; // Prevent moving out of bounds
-        }
-        return { ...prev, x: newX };
-      }); // Update the block position
-    },
-    [isPaused, isGameOver, collisionDetection, currentBlock]
-  );
+    const newPosition = {
+      ...realTimePosition.current,
+      x: realTimePosition.current.x - 10,
+    };
+
+    // Check boundaries and collisions
+    if (newPosition.x < 0 || collisionDetection(currentBlock, newPosition)) {
+      return;
+    }
+
+    realTimePosition.current = newPosition;
+    setBlockPosition(newPosition);
+  }, [currentBlock, isPaused, isGameOver, collisionDetection]);
 
   const moveRight = useCallback(() => {
     if (!currentBlock || isPaused || isGameOver) return;
 
     // Logic to move the block right
-    setBlockPosition((prev) => {
-      let newX = prev.x + 10;
-      // Check for collision with the right boundary
-      if (collisionDetection(currentBlock, { ...prev, x: newX })) {
-        newX = prev.x; // Reset to the previous position
-      }
 
-      if (newX > playGroundWidth - currentBlock[0].length * 10) {
-        newX = playGroundWidth - currentBlock[0].length * 10; // Prevent moving out of bounds
-      }
-      return { ...prev, x: newX };
-    }); // Update the block position
-  }, [
-    currentBlock,
-    setBlockPosition,
-    isPaused,
-    isGameOver,
-    collisionDetection,
-  ]);
+    const newPosition = {
+      ...realTimePosition.current,
+      x: realTimePosition.current.x + 10,
+    };
+    // Check boundaries and collisions
+    const maxX = playGroundWidth - currentBlock[0].length * 10;
+    if (newPosition.x > maxX || collisionDetection(currentBlock, newPosition)) {
+      return;
+    }
+
+    realTimePosition.current = newPosition;
+    setBlockPosition(newPosition);
+  }, [currentBlock, isPaused, isGameOver, collisionDetection]);
 
   const moveDown = useCallback(
     (speed = 1) => {
       // Check if game over
       gameOverDetection();
+
+      if ((isGameOver, isPaused)) return;
 
       console.log("moveDown");
 
@@ -370,20 +364,18 @@ export default function HomeScreen() {
       fullRowDetection();
 
       let newPosition = {
-        x: blockPosition.x,
-        y: blockPosition.y + 10 * speed, // at vertically 10 more with speed fast
+        x: realTimePosition.current.x,
+        y: realTimePosition.current.y + 10 * speed, // at vertically 10 more with speed fast
       };
 
       let hasCollision = collisionDetection(currentBlock, newPosition);
       const isAtBottom =
-        blockPosition.y >= playGroundHeight - currentBlock.length * 10 * speed;
+        realTimePosition.current.y >=
+        playGroundHeight - currentBlock.length * 10 * speed;
 
       // Constrain when at bottom or has collision
 
       if (hasCollision || isAtBottom) {
-        // disable movement buttons
-        setDisableButton(true);
-
         /* If at bottom and maybe also being collision but cannot detect (get over boundary), 
         - move it to the bottom
         - Checking if collision, move newPosition 10 up backward, if not, leave it alone
@@ -393,7 +385,7 @@ export default function HomeScreen() {
         if (isAtBottom) {
           // Let them at the bottom first
           newPosition = {
-            ...blockPosition,
+            ...realTimePosition.current,
             y: playGroundHeight - currentBlock.length * 10,
           };
         }
@@ -401,8 +393,8 @@ export default function HomeScreen() {
         // if collision occurs
         if (collisionDetection(currentBlock, newPosition)) {
           newPosition = {
-            ...blockPosition,
-            y: blockPosition.y, // move up 10 more if still collision, 10, 20, 30
+            ...realTimePosition.current,
+            y: realTimePosition.current.y, // move up 10 more if still collision, 10, 20, 30
           };
           hasCollision = collisionDetection(currentBlock, newPosition);
           while (!hasCollision) {
@@ -447,18 +439,19 @@ export default function HomeScreen() {
         setIsLongPressDown(false); // // Before Fetching new Block
 
         setCurrentBlock(nextBlock);
-        setBlockPosition(randomPosition());
+        const newRandomPosition = randomPosition();
+        realTimePosition.current = newRandomPosition;
+        setBlockPosition(newRandomPosition);
         setNextBlock(randomBlock());
-        setQuickDown(false); // Set quckDown is false
 
         return;
       }
 
       // If no collision and not at bottom, move down
       setBlockPosition(newPosition);
+      realTimePosition.current = newPosition;
     },
     [
-      blockPosition,
       currentBlock,
       nextBlock,
       isPaused,
@@ -470,31 +463,6 @@ export default function HomeScreen() {
     ]
   );
 
-  const handleReset = () => {
-    setCurrentBlock(randomBlock());
-    setBlockPosition(randomPosition());
-    setPlacedBlocks([]); // Reset the placed blocks
-    setScore(0); // Reset the scores
-    setLevel(1);
-    setDisableButton(false); // Reset the reached bottom state
-    setIsGameOver(false); // Reset the game over state
-    setIsPaused(false); // Reset the paused state
-    setIsReset(true);
-    setTime(defaultTime);
-  };
-  const handlePause = () => {
-    // are paused, now unpause, then set the button to be enabled
-    if (isPaused) {
-      setDisableButton(false); // Disable buttons when paused
-    } else {
-      setDisableButton(true); // Enable buttons when unpaused
-    }
-
-    setIsPaused(!isPaused);
-  };
-  const handleSound = () => {
-    setIsSoundOn(!isSoundOn);
-  };
   // Unified game loop
   useEffect(() => {
     if (isGameOver || isPaused) return;
@@ -509,7 +477,7 @@ export default function HomeScreen() {
     return () => {
       clearInterval(gameInterval);
     };
-  }, [isPaused, isGameOver, blockPosition, moveDown, time, isLongPressDown]);
+  }, [isPaused, isGameOver, moveDown, blockPosition, time, isLongPressDown]);
 
   // Continuous left movement while holding the button
   useEffect(() => {
@@ -525,7 +493,6 @@ export default function HomeScreen() {
   // Continuous right movement while holding the button
   useEffect(() => {
     if (!isMovingRight || isPaused || isGameOver) return;
-
     const interval = setInterval(() => {
       moveRight();
     }, 50); // Same as left for consistency
@@ -533,6 +500,23 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
+  const handleReset = () => {
+    setCurrentBlock(randomBlock());
+    setBlockPosition(randomPosition());
+    setPlacedBlocks([]); // Reset the placed blocks
+    setScore(0); // Reset the scores
+    setLevel(1);
+    setIsGameOver(false); // Reset the game over state
+    setIsPaused(false); // Reset the paused state
+    setIsReset(true);
+    setTime(defaultTime);
+  };
+  const handlePause = () => {
+    setIsPaused(!isPaused);
+  };
+  const handleSound = () => {
+    setIsSoundOn(!isSoundOn);
+  };
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
@@ -675,7 +659,7 @@ export default function HomeScreen() {
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity style={styles.button} onPress={() => moveDown(20)}>
+          <TouchableOpacity style={styles.button} onPress={() => moveDown(30)}>
             <Text>Quick</Text>
           </TouchableOpacity>
 
