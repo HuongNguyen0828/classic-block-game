@@ -110,7 +110,9 @@ export default function HomeScreen() {
 
   const currentTime = useRef(time); // To track of current time before LongPress
   const realTimePosition = useRef(blockPosition);
-  const countTime = useRef(0);
+
+  const [lastPress, setLastPress] = useState(0);
+  const [pressList, setPressList] = useState([]);
 
   // Logic for clear full row and record score
   /* 
@@ -651,7 +653,22 @@ export default function HomeScreen() {
           </View>
           <View>
             {/* Rotate button */}
-            <TouchableOpacity style={styles.rotateButton} onPress={rotateBlock}>
+            <TouchableOpacity
+              style={styles.rotateButton}
+              onPress={() => {
+                rotateBlock(); // rotating block
+                const now = new Date().getTime();
+                setLastPress(now);
+                if (now - pressList[0] === currentTime) {
+                  // Empty the time list and return
+                  setPressList([]);
+                  return;
+                }
+                else {
+                  setLastPress([...pressList, lastPress]);
+                }
+              }}
+            >
               <Text>Rotate</Text>
             </TouchableOpacity>
           </View>
