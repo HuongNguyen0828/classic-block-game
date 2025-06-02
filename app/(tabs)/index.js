@@ -313,7 +313,13 @@ export default function HomeScreen() {
 
     // if already reach the boundary to the right, rotate inside the boundary
     if (blockPosition.x > playGroundWidth - maxLength * 10) {
-      setBlockPosition({ ...blockPosition, x: 200 - maxLength * 10 }); // Prevent moving out of bounds
+      const newRotatedPosition = {
+        ...blockPosition,
+        x: playGroundWidth - maxLength * 10,
+      };
+
+      setBlockPosition(newRotatedPosition); // Prevent moving out of bounds
+      realTimePosition.current = newRotatedPosition;
     }
   };
 
@@ -349,8 +355,8 @@ export default function HomeScreen() {
       return;
     }
 
-    realTimePosition.current = newPosition;
     setBlockPosition(newPosition);
+    realTimePosition.current = newPosition;
   }, [currentBlock, isPaused, isGameOver, collisionDetection]);
 
   const moveDown = useCallback(
@@ -653,22 +659,7 @@ export default function HomeScreen() {
           </View>
           <View>
             {/* Rotate button */}
-            <TouchableOpacity
-              style={styles.rotateButton}
-              onPress={() => {
-                rotateBlock(); // rotating block
-                const now = new Date().getTime();
-                setLastPress(now);
-                if (now - pressList[0] === currentTime) {
-                  // Empty the time list and return
-                  setPressList([]);
-                  return;
-                }
-                else {
-                  setLastPress([...pressList, lastPress]);
-                }
-              }}
-            >
+            <TouchableOpacity style={styles.rotateButton} onPress={rotateBlock}>
               <Text>Rotate</Text>
             </TouchableOpacity>
           </View>
