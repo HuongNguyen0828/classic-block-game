@@ -316,25 +316,28 @@ export default function HomeScreen() {
     if (collisionDetection(rotatedBlock, blockPosition)) {
       return;
     }
-
-    // Find max length of the block
-    const maxLength = Math.max(...rotatedBlock.map((row) => row.length));
-
-    // if already reach the boundary to the right, rotate inside the boundary
-    if (blockPosition.x > playGroundWidth - maxLength * 10) {
-      const newRotatedPosition = {
-        ...blockPosition,
-        x: playGroundWidth - maxLength * 10,
-      };
-      setBlockPosition(newRotatedPosition); // Prevent moving out of bounds
-    }
-
     // If reach bottom
     if (blockPosition.y >= playGroundHeight - rotateBlock.length * 10) {
       return; // to stop moveMent of block
     }
 
+    // Find max length of the block
+    const maxLength = Math.max(...rotatedBlock.map((row) => row.length));
+    console.log(maxLength);
+    console.log(blockPosition.x);
+
+    const rotatedWidth = rotatedBlock[0].length;
+    let newX = blockPosition.x;
+    // if already reach the boundary to the right, rotate inside the boundary
+    if (blockPosition.x + rotatedWidth * 10 > playGroundWidth) {
+      newX = playGroundWidth - rotatedWidth * 10;
+    }
+
     // Update the current block with the rotated block
+    setBlockPosition((prev) => ({
+      ...prev,
+      x: newX,
+    })); // Prevent moving out of bounds
     setCurrentBlock(rotatedBlock);
     setDisableButton(false);
   };
@@ -500,7 +503,7 @@ export default function HomeScreen() {
       }
 
       // If no collision and not at bottom, move down
-      else setBlockPosition(newPosition);
+      setBlockPosition((prev) => ({ ...prev, y: newPosition.y }));
     },
     [
       currentBlock,
@@ -712,7 +715,6 @@ export default function HomeScreen() {
                 // Always rotate
                 rotateBlock();
                 const now = Date.now();
-
                 if (rotationStartTime === null) {
                   // First press
                   setRotationStartTime(now);
@@ -722,7 +724,7 @@ export default function HomeScreen() {
                   // Time expired: reset start time, block rotation this time
                   console.log("expired");
                   setRotationStartTime(now);
-                  moveDown(1); // MoveDown when reach the time
+                  moveDown(1); // Must move down when reach time
                 }
               }}
             >
