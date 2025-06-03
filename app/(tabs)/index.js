@@ -297,16 +297,26 @@ export default function HomeScreen() {
     [placedBlocks]
   );
 
+  // Checking at bottom
+  const isAtBottom =
+    blockPosition.y >= playGroundHeight - currentBlock.length * 10;
+
   // Default is rotating 90 degrees clockwise
   const rotateBlock = () => {
-    if (!currentBlock || isPaused || isGameOver || disableButton) return;
+    if (!currentBlock || isPaused || isGameOver || disableButton || isAtBottom)
+      return;
     console.log("rotate");
 
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
       currentBlock.map((row) => row[colIndex]).reverse()
     );
-    setCurrentBlock(rotatedBlock); // Update the current block with the rotated block
+
+    // if collision detected, no allow rotate, before updating currentBlock to rotatedBlock
+    if (collisionDetection(rotatedBlock, blockPosition)) {
+      return;
+    }
+
     // Find max length of the block
     const maxLength = Math.max(...rotatedBlock.map((row) => row.length));
 
@@ -319,17 +329,19 @@ export default function HomeScreen() {
       setBlockPosition(newRotatedPosition); // Prevent moving out of bounds
     }
 
-    if (blockPosition.y > playGroundHeight - rotateBlock.length * 10) {
-      const newRotatedPosition = {
-        ...blockPosition,
-        y: playGroundHeight - rotateBlock.length * 10,
-      };
-      setBlockPosition(newRotatedPosition); // Prevent moving out of bounds
+    // If reach bottom
+    if (blockPosition.y >= playGroundHeight - rotateBlock.length * 10) {
+      return; // to stop moveMent of block
     }
+
+    // Update the current block with the rotated block
+    setCurrentBlock(rotatedBlock);
+    setDisableButton(false);
   };
 
   const moveLeft = useCallback(() => {
-    if (!currentBlock || isPaused || isGameOver || disableButton) return;
+    if (!currentBlock || isPaused || isGameOver || disableButton || isAtBottom)
+      return;
 
     const newPosition = {
       ...blockPosition,
@@ -349,10 +361,12 @@ export default function HomeScreen() {
     collisionDetection,
     disableButton,
     blockPosition,
+    isAtBottom,
   ]);
 
   const moveRight = useCallback(() => {
-    if (!currentBlock || isPaused || isGameOver) return;
+    if (!currentBlock || isPaused || isGameOver || disableButton || isAtBottom)
+      return;
 
     // Logic to move the block right
 
@@ -367,14 +381,38 @@ export default function HomeScreen() {
     }
 
     setBlockPosition(newPosition);
-  }, [currentBlock, isPaused, isGameOver, collisionDetection, blockPosition]);
+  }, [
+    currentBlock,
+    isPaused,
+    isGameOver,
+    collisionDetection,
+    blockPosition,
+    disableButton,
+    isAtBottom,
+  ]);
+
+  const fetchNewBlock = useCallback(() => {
+    setCurrentBlock(nextBlock);
+    const newRandomPosition = randomPosition();
+    setBlockPosition(newRandomPosition);
+    setNextBlock(randomBlock());
+    setDisableButton(false);
+    setIsLongPressDown(false);
+  }, [nextBlock]);
 
   const moveDown = useCallback(
     (speed = 1) => {
       // Check if game over
       gameOverDetection();
 
-      if ((isGameOver, isPaused || disableButton)) return;
+      if (isGameOver || isPaused || disableButton) return;
+
+      // // If has collision or at bottom with current position, fetch newBlock and done
+      // if (isAtBottom || collisionDetection(currentBlock, blockPosition)) {
+      //   setPlacedBlocks([...placedBlocks, currentBlock]);
+      //   fetchNewBlock();
+      //   return;
+      // }
 
       console.log("moveDown");
 
@@ -387,12 +425,13 @@ export default function HomeScreen() {
       };
 
       let hasCollision = collisionDetection(currentBlock, newPosition);
-      const isAtBottom =
+      // Checking is at bottom with speed
+      const isAtBottomWSpeed =
         blockPosition.y >= playGroundHeight - currentBlock.length * 10 * speed;
 
       // Constrain when at bottom or has collision
 
-      if (hasCollision || isAtBottom) {
+      if (hasCollision || isAtBottomWSpeed) {
         /* If at bottom and maybe also being collision but cannot detect (get over boundary), 
         - move it to the bottom
         - Checking if collision, move newPosition 10 up backward, if not, leave it alone
@@ -401,7 +440,7 @@ export default function HomeScreen() {
         */
         setDisableButton(true);
 
-        if (isAtBottom) {
+        if (isAtBottomWSpeed) {
           // Let them at the bottom first
           newPosition = {
             ...blockPosition,
@@ -455,23 +494,16 @@ export default function HomeScreen() {
         // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
         fullRowDetection();
 
-        setIsLongPressDown(false); // // Before Fetching new Block
-
-        setCurrentBlock(nextBlock);
-        const newRandomPosition = randomPosition();
-        setBlockPosition(newRandomPosition);
-        setNextBlock(randomBlock());
-        setDisableButton(false);
+        fetchNewBlock();
 
         return;
       }
 
       // If no collision and not at bottom, move down
-      setBlockPosition(newPosition);
+      else setBlockPosition(newPosition);
     },
     [
       currentBlock,
-      nextBlock,
       isPaused,
       isGameOver,
       collisionDetection,
@@ -480,6 +512,7 @@ export default function HomeScreen() {
       gameOverDetection,
       disableButton,
       blockPosition,
+      fetchNewBlock,
     ]
   );
 
@@ -676,20 +709,20 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={styles.rotateButton}
               onPress={() => {
+                // Always rotate
+                rotateBlock();
                 const now = Date.now();
 
                 if (rotationStartTime === null) {
                   // First press
                   setRotationStartTime(now);
-                  rotateBlock();
                 } else if (now - rotationStartTime <= time) {
                   // Still within period: allow rotation
-                  rotateBlock();
                 } else {
                   // Time expired: reset start time, block rotation this time
                   console.log("expired");
                   setRotationStartTime(now);
-                  moveDown(1);
+                  moveDown(1); // MoveDown when reach the time
                 }
               }}
             >
@@ -730,20 +763,20 @@ export default function HomeScreen() {
                 elevation: 5,
               }}
               onPress={() => {
-                const now = Date.now();
+                // Always moveLeft
+                moveLeft();
 
+                const now = Date.now();
                 if (rotationStartTime === null) {
                   // First press
                   setRotationStartTime(now);
-                  moveLeft();
                 } else if (now - rotationStartTime <= time) {
                   // Still within period: allow rotation
-                  moveLeft();
                 } else {
                   // Time expired: reset start time, block rotation this time
                   console.log("expired");
                   setRotationStartTime(now);
-                  moveDown(1); // Must move down
+                  moveDown(1); // Must move down when reach time
                 }
               }}
               onPressIn={() => setIsMovingLeft(true)}
@@ -801,20 +834,20 @@ export default function HomeScreen() {
                 elevation: 5,
               }}
               onPress={() => {
+                //Always move Right
+                moveRight();
                 const now = Date.now();
 
                 if (rotationStartTime === null) {
                   // First press
                   setRotationStartTime(now);
-                  moveRight();
                 } else if (now - rotationStartTime <= time) {
                   // Still within period: allow rotation
-                  moveRight();
                 } else {
                   // Time expired: reset start time, block rotation this time
                   console.log("expired");
                   setRotationStartTime(now);
-                  moveDown(1); // Must move down
+                  moveDown(1); // Must move down when reach the time
                 }
               }}
               onPressIn={() => setIsMovingRight(true)}
