@@ -312,10 +312,6 @@ export default function HomeScreen() {
       currentBlock.map((row) => row[colIndex]).reverse()
     );
 
-    // if collision detected, no allow rotate, before updating currentBlock to rotatedBlock
-    if (collisionDetection(rotatedBlock, blockPosition)) {
-      return;
-    }
     // If reach bottom
     if (blockPosition.y >= playGroundHeight - rotateBlock.length * 10) {
       return; // to stop moveMent of block
@@ -327,10 +323,16 @@ export default function HomeScreen() {
     console.log(blockPosition.x);
 
     const rotatedWidth = rotatedBlock[0].length;
+    const rotatedHeight = rotatedBlock.length;
     let newX = blockPosition.x;
     // if already reach the boundary to the right, rotate inside the boundary
     if (blockPosition.x + rotatedWidth * 10 > playGroundWidth) {
       newX = playGroundWidth - rotatedWidth * 10;
+    }
+
+    // if collision detected, no allow rotate, before updating currentBlock to rotatedBlock
+    if (collisionDetection(rotatedBlock, { ...blockPosition, x: newX })) {
+      return;
     }
 
     // Update the current block with the rotated block
