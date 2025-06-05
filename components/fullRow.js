@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   innerBlock: {
     width: "80%",
     height: "80%",
-    backgroundColor: "red",
+    backgroundColor: "#4ECDC4",
     borderRadius: 1,
     margin: "auto",
   },

@@ -84,6 +84,7 @@ for (let i = 0; i < 20; i++) {
     boxes[i].push(1); // push 1 into each column of that row: 20 columns
   }
 }
+let fullRowsAnimation = null;
 
 export default function HomeScreen() {
   // Setting up state variables
@@ -105,7 +106,7 @@ export default function HomeScreen() {
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
-  const [level, setLevel] = useState(0);
+  const [level, setLevel] = useState(1);
   const [time, setTime] = useState(defaultTime);
   const [fullRowsDetected, setFullRowDetected] = useState([]); // For styling before clearing out of placedBlocks
 
@@ -208,6 +209,11 @@ export default function HomeScreen() {
     */
     // Render Full row Dectection to fullRowsDetected for styling before clearing
     setFullRowDetected(fullRows);
+    // Clear rows after animation
+    setTimeout(() => {
+      setFullRowDetected([]);
+    }, 500);
+
     // update score: with level relationship
     setScore((prev) => prev + fullRows.length);
     // Update level
@@ -247,7 +253,9 @@ export default function HomeScreen() {
       return newBlock;
     });
 
-    setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
+    setTimeout(() => {
+      setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
+    }, 500);
   }, [placedBlocks, getAllFilledCells, score]);
 
   const collisionDetection = useCallback(
@@ -498,6 +506,20 @@ export default function HomeScreen() {
     ]
   );
 
+  useEffect(() => {
+    setTime((prev) => prev - 100);
+  }, [level]);
+
+  // Use Effect for fullRowDection
+  useEffect(() => {
+    if (placedBlocks.length === 0) return;
+    const interval = setInterval(() => {
+      fullRowDetection();
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [placedBlocks, fullRowDetection]);
+
   // Unified game loop
   useEffect(() => {
     if (isGameOver || isPaused) return;
@@ -513,12 +535,6 @@ export default function HomeScreen() {
       clearInterval(gameInterval);
     };
   }, [isPaused, isGameOver, moveDown, time, isLongPressDown]);
-
-  // Use Effect for fullRowDection
-  useEffect(() => {
-    if (placedBlocks.length === 0) return;
-    fullRowDetection();
-  }, [placedBlocks, fullRowDetection]);
 
   // Continuous left movement while holding the button
   useEffect(() => {
@@ -598,23 +614,20 @@ export default function HomeScreen() {
                   left: item.position.x,
                 }}
               >
-                <Block type={item.type}>
-                  {fullRowsDetected.map((row, index) => (
-                    <View
-                      key={index}
-                      style={{
-                        position: "absolute",
-                        top: row,
-                        left: 0,
-                        color: "red",
-                        borderRadius: 5,
-                        borderColor: "red",
-                      }}
-                    >
-                      <FullRow />
-                    </View>
-                  ))}
-                </Block>
+                <Block type={item.type} />
+              </View>
+            ))}
+            {/* Render fullRowDetected */}
+            {fullRowsDetected.map((row, index) => (
+              <View
+                key={index}
+                style={{
+                  position: "absolute",
+                  top: row,
+                  left: 0,
+                }}
+              >
+                <FullRow />
               </View>
             ))}
 
