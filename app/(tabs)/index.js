@@ -10,6 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { StatusBar } from "expo-status-bar";
+
 import Block from "../../components/block";
 import BlockList from "../../components/block-list";
 import Box from "../../components/box";
@@ -884,7 +887,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#87CEEB",
-    paddingTop: Platform.OS === "ios" ? height : 0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   heading: {
     justifyContent: "center",
@@ -898,7 +901,7 @@ const styles = StyleSheet.create({
     width: "100%",
     gap: 2,
     flexDirection: "row",
-    backgroundColor: "#fff",
+    backgroundColor: "#E0E0E0",
     borderRadius: 5,
     shadowColor: "#000",
     justifyContent: "center",
