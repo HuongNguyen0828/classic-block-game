@@ -21,7 +21,7 @@ import FullRow from "../../components/fullRow";
 const { width, height } = Dimensions.get("window");
 const playGroundHeight = 200;
 const playGroundWidth = 200;
-const defaultTime = 500;
+const defaultTime = 700;
 
 const Z = [
   [0, 1],
@@ -213,10 +213,6 @@ export default function HomeScreen() {
     // Update level
     const odd = score / 5; // 5/ 5 = 1 (level 1), 6/ 6 (level 1), 10 (level 2)
     setLevel(Math.floor(odd));
-    time > 100 && setTime(defaultTime - 100 * level); //level 0, 1, 2, 3, 4, 5, 6, time = 700, 600, 500, 400, 300, 100
-    level === 7 && setTime(80);
-    level === 8 && setTime(60);
-    level === 9 && setTime(40);
 
     const newPlacedBlocks = placedBlocks.map((block) => {
       const { type, position } = block;
@@ -252,7 +248,7 @@ export default function HomeScreen() {
     });
 
     setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
-  }, [placedBlocks, getAllFilledCells, score, level, time]);
+  }, [placedBlocks, getAllFilledCells, score]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -409,16 +405,6 @@ export default function HomeScreen() {
 
       if (isGameOver || isPaused || disableButton) return;
 
-      // // If has collision or at bottom with current position, fetch newBlock and done
-      // if (isAtBottom || collisionDetection(currentBlock, blockPosition)) {
-      //   setPlacedBlocks([...placedBlocks, currentBlock]);
-      //   fetchNewBlock();
-      //   return;
-      // }
-
-      // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
-      fullRowDetection();
-
       let newPosition = {
         x: blockPosition.x,
         y: blockPosition.y + 10 * speed, // at vertically 10 more with speed fast
@@ -504,7 +490,6 @@ export default function HomeScreen() {
       isPaused,
       isGameOver,
       collisionDetection,
-      fullRowDetection,
       placedBlocks,
       gameOverDetection,
       disableButton,
@@ -527,7 +512,13 @@ export default function HomeScreen() {
     return () => {
       clearInterval(gameInterval);
     };
-  }, [isPaused, isGameOver, moveDown, blockPosition, time, isLongPressDown]);
+  }, [isPaused, isGameOver, moveDown, time, isLongPressDown]);
+
+  // Use Effect for fullRowDection
+  useEffect(() => {
+    if (placedBlocks.length === 0) return;
+    fullRowDetection();
+  }, [placedBlocks, fullRowDetection]);
 
   // Continuous left movement while holding the button
   useEffect(() => {
