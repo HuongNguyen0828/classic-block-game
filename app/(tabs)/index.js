@@ -84,7 +84,6 @@ for (let i = 0; i < 20; i++) {
     boxes[i].push(1); // push 1 into each column of that row: 20 columns
   }
 }
-let fullRowsAnimation = null;
 
 export default function HomeScreen() {
   // Setting up state variables
@@ -215,10 +214,21 @@ export default function HomeScreen() {
     }, 500);
 
     // update score: with level relationship
-    setScore((prev) => prev + fullRows.length);
-    // Update level
-    const odd = score / 5; // 5/ 5 = 1 (level 1), 6/ 6 (level 1), 10 (level 2)
-    setLevel(Math.floor(odd));
+    // Update score and level together
+    setScore((prevScore) => {
+      const newScore = prevScore + fullRows.length;
+      const newLevel = Math.floor(newScore / 5) + 1; // +1 so level starts at 1
+
+      // Update level and time based on new score
+      setLevel(newLevel);
+
+      // Calculate new time based on level
+      const newTime = Math.max(100, defaultTime - 50 * (newLevel - 1));
+      setTime(newTime);
+      currentTime.current = newTime; // Update the ref too
+
+      return newScore;
+    });
 
     const newPlacedBlocks = placedBlocks.map((block) => {
       const { type, position } = block;
@@ -256,7 +266,7 @@ export default function HomeScreen() {
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
     }, 500);
-  }, [placedBlocks, getAllFilledCells, score]);
+  }, [placedBlocks, getAllFilledCells]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -506,10 +516,6 @@ export default function HomeScreen() {
     ]
   );
 
-  useEffect(() => {
-    setTime((prev) => prev - 100);
-  }, [level]);
-
   // Use Effect for fullRowDection
   useEffect(() => {
     if (placedBlocks.length === 0) return;
@@ -569,6 +575,7 @@ export default function HomeScreen() {
     setIsReset(true);
     setTime(defaultTime);
     setDisableButton(false);
+    currentTime.current = defaultTime;
   };
   const handlePause = () => {
     setIsPaused(!isPaused);
