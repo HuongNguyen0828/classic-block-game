@@ -19,7 +19,7 @@ import Box from "../../components/box";
 import FullRow from "../../components/fullRow";
 
 const { width, height } = Dimensions.get("window");
-const playGroundHeight = 300;
+const playGroundHeight = 200;
 const playGroundWidth = 200;
 const defaultTime = 500;
 
@@ -78,7 +78,7 @@ const randomPosition = (blockWidth = 20) => {
 
 const boxes = [];
 
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 20; i++) {
   boxes.push([]); // create a new row: 41 rows
   for (let j = 0; j < 19; j++) {
     boxes[i].push(1); // push 1 into each column of that row: 20 columns
@@ -218,24 +218,18 @@ export default function HomeScreen() {
     level === 8 && setTime(60);
     level === 9 && setTime(40);
 
-    // Remove blocks in full rows
-    const newPlacedBlocks = placedBlocks.reduce((acc, block) => {
-      const type = block.type; // Get the type of the block
-      const position = block.position; // Get the position of the block
-      // Check if the block is in a full row
-      const newType = type.reduce((newRows, rowArr, rIdx) => {
-        const y = position.y + rIdx * 10; // Calculate the top position of the row
-        !fullRows.includes(y) && newRows.push(rowArr); // If the row is not in a full row, add it to the newRows array
-        return newRows; // Check if this row is in fullRows
-      }, []); // Reduce the type array to only include rows that are not in fullRows
-
-      // Resemble the block with the new type
-      acc.push({
-        ...block,
-        type: newType, // Update the type of the block with the new type
+    const newPlacedBlocks = placedBlocks.map((block) => {
+      const { type, position } = block;
+      const newType = type.filter((_, rIdx) => {
+        const y = position.y + rIdx * 10;
+        return !fullRows.includes(y);
       });
-      return acc; // Return the accumulator
-    }, []);
+
+      return {
+        ...block,
+        type: newType,
+      };
+    });
 
     //Shifting all new block type above of the fullRow down after removing
     // Shift blocks above cleared rows down
@@ -422,9 +416,7 @@ export default function HomeScreen() {
       //   return;
       // }
 
-      console.log("moveDown");
-
-      // Check against full row detection, and record score after SET placedBlocks
+      // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
       fullRowDetection();
 
       let newPosition = {
@@ -498,9 +490,6 @@ export default function HomeScreen() {
         const newPlacedBlocks = [...placedBlocks, newBlock];
         // Add current block to placedBlocks and spawn new one
         setPlacedBlocks(newPlacedBlocks);
-
-        // Check against full row detection, and record score AFTER SET placedBlocks with new placedBlocks having newType
-        fullRowDetection();
 
         fetchNewBlock();
 
