@@ -18,6 +18,17 @@ import BlockList from "../../components/block-list";
 import Box from "../../components/box";
 import FullRow from "../../components/fullRow";
 
+// For sounds
+import { Audio } from "expo-av";
+
+const playMoveHorizontal = async () => {
+  const { sound } = await Audio.Sound.createAsync(
+    require("../../assets/sounds/BeepBox_trimmed.wav")
+  );
+
+  await sound.playAsync();
+};
+
 const { width, height } = Dimensions.get("window");
 const playGroundHeight = 200;
 const playGroundWidth = 200;
@@ -116,6 +127,8 @@ export default function HomeScreen() {
 
   const [rotationStartTime, setRotationStartTime] = useState(null);
 
+  const soundRef = (useRef < Audio.Sound) | (null > null);
+
   // Logic for clear full row and record score
   /* 
     Every time that currentBlock move down, check against all the y position ( as each line Horizontally) of each currentBlock
@@ -123,6 +136,19 @@ export default function HomeScreen() {
         score++, and 
         move all blocks that these box belonging to down 10px
   */
+
+  const playSound = async () => {
+    if (soundRef.current) {
+      await soundRef.current.unloadAsync();
+    }
+
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/sounds/tetris_theme.wav"),
+      { shouldPlay: true, isLooping: true }
+    );
+
+    soundRef.current = sound;
+  };
 
   const getAllFilledCells = useCallback(() => {
     const filledCells = [];
@@ -245,23 +271,25 @@ export default function HomeScreen() {
 
     //Shifting all new block type above of the fullRow down after removing
     // Shift blocks above cleared rows down
-    const newPlacedBlocksShiftDown = newPlacedBlocks.map((block) => {
-      let countShifts = 0;
-      for (let row = 0; row < block.type.length; row++) {
-        const y = block.position.y + row * 10;
+    const newPlacedBlocksShiftDown = newPlacedBlocks
+      .map((block) => {
+        let countShifts = 0;
+        for (let row = 0; row < block.type.length; row++) {
+          const y = block.position.y + row * 10;
 
-        // Check count if it > AND = each item, count++
-        countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
-      }
+          // Check count if it > AND = each item, count++
+          countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
+        }
 
-      const newPosition = {
-        x: block.position.x,
-        y: block.position.y + 10 * countShifts,
-      };
-      const newBlock = { ...block, position: newPosition };
+        const newPosition = {
+          x: block.position.x,
+          y: block.position.y + 10 * countShifts,
+        };
+        const newBlock = { ...block, position: newPosition };
 
-      return newBlock;
-    });
+        return newBlock;
+      })
+      .filter((block) => block.type.length !== 0); // remove block empty
 
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
@@ -515,15 +543,20 @@ export default function HomeScreen() {
       fetchNewBlock,
     ]
   );
+  useEffect(() => {
+    if (!isPaused && !isReset && !isGameOver) {
+      playSound();
+    }
+    return () => {
+      soundRef.current?.unloadAsync();
+    };
+  }, [isGameOver, isReset, isPaused, playSound, soundRef]);
 
   // Use Effect for fullRowDection
   useEffect(() => {
     if (placedBlocks.length === 0) return;
-    const interval = setInterval(() => {
-      fullRowDetection();
-    }, 50);
 
-    return () => clearInterval(interval);
+    fullRowDetection();
   }, [placedBlocks, fullRowDetection]);
 
   // Unified game loop
@@ -772,6 +805,7 @@ export default function HomeScreen() {
               onPress={() => {
                 // Always moveLeft
                 moveLeft();
+                playMoveHorizontal(); // add sounds
 
                 const now = Date.now();
                 if (rotationStartTime === null) {
@@ -843,6 +877,7 @@ export default function HomeScreen() {
               onPress={() => {
                 //Always move Right
                 moveRight();
+                playMoveHorizontal();
                 const now = Date.now();
 
                 if (rotationStartTime === null) {
