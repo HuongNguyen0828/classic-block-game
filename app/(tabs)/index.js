@@ -144,7 +144,7 @@ export default function HomeScreen() {
         score++, and 
         move all blocks that these box belonging to down 10px
   */
-
+  // Playing sound
   const playSound = useCallback(async () => {
     if (soundRef.current) {
       await soundRef.current.unloadAsync();
@@ -157,6 +157,13 @@ export default function HomeScreen() {
 
     soundRef.current = sound;
   }, [soundRef]);
+
+  // Stop sound
+  const stopBackgroundMusic = useCallback(async () => {
+    if (soundRef.current) {
+      await soundRef.current.pauseAsync();
+    }
+  }, []);
 
   const getAllFilledCells = useCallback(() => {
     const filledCells = [];
@@ -553,7 +560,7 @@ export default function HomeScreen() {
     ]
   );
   useEffect(() => {
-    if (!isPaused && !isReset && !isGameOver & isSoundOn) {
+    if (!isPaused && !isReset && !isGameOver && isSoundOn) {
       playSound();
     }
   }, [isGameOver, isReset, isPaused, playSound, soundRef, isSoundOn]);
@@ -619,9 +626,18 @@ export default function HomeScreen() {
   const handlePause = () => {
     setIsPaused(!isPaused);
   };
-  const handleSound = () => {
+
+  // Updated handleSound function
+  const handleSound = async () => {
     setIsSoundOn(!isSoundOn);
+
+    if (!isSoundOn && !isPaused && !isGameOver) {
+      await playSound();
+    } else {
+      await stopBackgroundMusic();
+    }
   };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
