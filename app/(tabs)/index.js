@@ -23,7 +23,15 @@ import { Audio } from "expo-av";
 
 const playMoveHorizontal = async () => {
   const { sound } = await Audio.Sound.createAsync(
-    require("../../assets/sounds/BeepBox_trimmed.wav")
+    require("../../assets/sounds/horizontal.wav")
+  );
+
+  await sound.playAsync();
+};
+
+const playHappyRowClear = async () => {
+  const { sound } = await Audio.Sound.createAsync(
+    require("../../assets/sounds/happy_row_clear.wav")
   );
 
   await sound.playAsync();
@@ -137,7 +145,7 @@ export default function HomeScreen() {
         move all blocks that these box belonging to down 10px
   */
 
-  const playSound = async () => {
+  const playSound = useCallback(async () => {
     if (soundRef.current) {
       await soundRef.current.unloadAsync();
     }
@@ -148,7 +156,7 @@ export default function HomeScreen() {
     );
 
     soundRef.current = sound;
-  };
+  }, [soundRef]);
 
   const getAllFilledCells = useCallback(() => {
     const filledCells = [];
@@ -236,6 +244,7 @@ export default function HomeScreen() {
     setFullRowDetected(fullRows);
     // Clear rows after animation
     setTimeout(() => {
+      playHappyRowClear(); // Play sounds
       setFullRowDetected([]);
     }, 500);
 
@@ -544,13 +553,10 @@ export default function HomeScreen() {
     ]
   );
   useEffect(() => {
-    if (!isPaused && !isReset && !isGameOver) {
+    if (!isPaused && !isReset && !isGameOver & isSoundOn) {
       playSound();
     }
-    return () => {
-      soundRef.current?.unloadAsync();
-    };
-  }, [isGameOver, isReset, isPaused, playSound, soundRef]);
+  }, [isGameOver, isReset, isPaused, playSound, soundRef, isSoundOn]);
 
   // Use Effect for fullRowDection
   useEffect(() => {
@@ -734,7 +740,10 @@ export default function HomeScreen() {
               <Text>Pause</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.secondaryButton}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleSound}
+            >
               <Text>Sound</Text>
             </TouchableOpacity>
 
