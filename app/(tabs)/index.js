@@ -13,6 +13,7 @@ import {
 
 import { StatusBar } from "expo-status-bar";
 
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Block from "../../components/block";
 import BlockList from "../../components/block-list";
 import Box from "../../components/box";
@@ -736,6 +737,13 @@ export default function HomeScreen() {
                   ? "Reset"
                   : "Play"}
               </Text>
+              {/* Sound icon */}
+
+              <Ionicons
+                name={isSoundOn ? "volume-high-sharp" : "volume-mute-sharp"}
+                size={24}
+                color="black"
+              />
             </View>
           </View>
         </View>

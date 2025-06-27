@@ -5,7 +5,7 @@ for (let i = 0; i < 20; i++) {
   row[i] = 1;
 }
 
-const fullRow = () => {
+const FullRow = () => {
   return (
     <View style={{ display: "flex", flexDirection: "row" }}>
       {row.map((box, index) => (
@@ -17,7 +17,7 @@ const fullRow = () => {
   );
 };
 
-export default fullRow;
+export default FullRow;
 
 const styles = StyleSheet.create({
   block: {
