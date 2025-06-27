@@ -387,9 +387,6 @@ export default function HomeScreen() {
     }
 
     // Find max length of the block
-    const maxLength = Math.max(...rotatedBlock.map((row) => row.length));
-    console.log(maxLength);
-    console.log(blockPosition.x);
 
     const rotatedWidth = rotatedBlock[0].length;
     const rotatedHeight = rotatedBlock.length;
@@ -717,16 +714,23 @@ export default function HomeScreen() {
 
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
-            <View style={{ height: "50%" }}>
+            <View style={{ height: "40%" }}>
               <Text>Score: {score} </Text>
-              <Text>LeveL: {level} </Text>
-              <Text>Time: {time}</Text>
+              <Text>Level: {level} </Text>
+              <Text>Speed: {700 / time}</Text>
             </View>
             <View style={{ height: "30%", alignItems: "center" }}>
               <Text>Preview Next</Text>
               <Block type={nextBlock} />
             </View>
-            <View style={{ height: "20%" }}>
+            <View
+              style={{
+                height: "30%",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
               <Text>
                 Status:{" "}
                 {isPaused
@@ -808,7 +812,6 @@ export default function HomeScreen() {
                   // Still within period: allow rotation
                 } else {
                   // Time expired: reset start time, block rotation this time
-                  console.log("expired");
                   setRotationStartTime(now);
                   moveDown(1); // Must move down when reach time
                 }
@@ -880,7 +883,6 @@ export default function HomeScreen() {
                   // Still within period: allow rotation
                 } else {
                   // Time expired: reset start time, block rotation this time
-                  console.log("expired");
                   setRotationStartTime(now);
                   moveDown(1); // Must move down when reach the time
                 }
@@ -942,7 +944,6 @@ export default function HomeScreen() {
                   // Still within period: allow rotation
                 } else {
                   // Time expired: reset start time, block rotation this time
-                  console.log("expired");
                   setRotationStartTime(now);
                   moveDown(1); // Must move down when reach time
                 }
