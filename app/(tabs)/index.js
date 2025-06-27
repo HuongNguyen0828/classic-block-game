@@ -29,22 +29,6 @@ const playSound = async () => {
   await sound.playAsync();
 };
 
-const playMoveHorizontal = async () => {
-  const { sound } = await Audio.Sound.createAsync(
-    require("../../assets/sounds/horizontal.wav")
-  );
-
-  await sound.playAsync();
-};
-
-const playHappyRowClear = async () => {
-  const { sound } = await Audio.Sound.createAsync(
-    require("../../assets/sounds/happy_row_clear.wav")
-  );
-
-  await sound.playAsync();
-};
-
 const { width, height } = Dimensions.get("window");
 const playGroundHeight = 200;
 const playGroundWidth = 200;
@@ -144,7 +128,45 @@ export default function HomeScreen() {
 
   const [rotationStartTime, setRotationStartTime] = useState(null);
 
-  const soundRef = (useRef < Audio.Sound) | (null > null);
+  const moveHorizontalSoundRef = useRef(null);
+  const clearRowSoundRef = useRef(null);
+
+  const playMoveHorizontal = async () => {
+    if (!isSoundOn) return; // If sound is off, do not play sound
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/sounds/horizontal.wav")
+    );
+    moveHorizontalSoundRef.current = sound; // Store the sound reference
+
+    await sound.playAsync();
+  };
+
+  const playHappyRowClear = async () => {
+    if (!isSoundOn) return; // If sound is off, do not play sound
+    const { sound } = await Audio.Sound.createAsync(
+      require("../../assets/sounds/happy_row_clear.wav")
+    );
+    clearRowSoundRef.current = sound; // Store the sound reference
+
+    await sound.playAsync();
+  };
+
+  // Stop when Sound is off
+  const stopMoveHorizontal = async () => {
+    if (moveHorizontalSoundRef.current) {
+      await moveHorizontalSoundRef.current.stopAsync();
+      await moveHorizontalSoundRef.current.unloadAsync();
+      moveHorizontalSoundRef.current = null;
+    }
+  };
+
+  const stopClearRowSound = async () => {
+    if (clearRowSoundRef.current) {
+      await clearRowSoundRef.current.stopAsync();
+      await clearRowSoundRef.current.unloadAsync();
+      clearRowSoundRef.current = null;
+    }
+  };
 
   // Logic for clear full row and record score
   /* 
@@ -612,21 +634,17 @@ export default function HomeScreen() {
   const handlePause = () => {
     setIsPaused(!isPaused);
   };
-  const stopHorizontalSound = () => {
-    if (soundRef.current) {
-      soundRef.current.stop();
-    }
-  };
 
-  // Updated handleSound function
   const handleSound = async () => {
-    setIsSoundOn(!isSoundOn);
-
-    if (!isSoundOn) {
-      stopHorizontalSound();
+    if (isSoundOn) {
+      // If sound is being turned OFF, stop all currently playing sounds: INSTANTly
+      await stopMoveHorizontal();
+      await stopClearRowSound();
     }
-  };
 
+    // Toggle sound state
+    setIsSoundOn(!isSoundOn);
+  };
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
