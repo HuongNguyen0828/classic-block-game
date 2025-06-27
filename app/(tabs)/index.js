@@ -20,6 +20,14 @@ import FullRow from "../../components/fullRow";
 
 // For sounds
 import { Audio } from "expo-av";
+// Playing sound
+const playSound = async () => {
+  const { sound } = await Audio.Sound.createAsync(
+    require("../../assets/sounds/tetris_theme.wav")
+  );
+
+  await sound.playAsync();
+};
 
 const playMoveHorizontal = async () => {
   const { sound } = await Audio.Sound.createAsync(
@@ -124,6 +132,7 @@ export default function HomeScreen() {
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
   const [score, setScore] = useState(0); // State to keep track of the score
+  const [tripleScore, setTripleScore] = useState(1); // State to keep track of the tripple score
   const [level, setLevel] = useState(1);
   const [time, setTime] = useState(defaultTime);
   const [fullRowsDetected, setFullRowDetected] = useState([]); // For styling before clearing out of placedBlocks
@@ -144,26 +153,6 @@ export default function HomeScreen() {
         score++, and 
         move all blocks that these box belonging to down 10px
   */
-  // Playing sound
-  const playSound = useCallback(async () => {
-    if (soundRef.current) {
-      await soundRef.current.unloadAsync();
-    }
-
-    const { sound } = await Audio.Sound.createAsync(
-      require("../../assets/sounds/tetris_theme.wav"),
-      { shouldPlay: true, isLooping: true }
-    );
-
-    soundRef.current = sound;
-  }, [soundRef]);
-
-  // Stop sound
-  const stopBackgroundMusic = useCallback(async () => {
-    if (soundRef.current) {
-      await soundRef.current.pauseAsync();
-    }
-  }, []);
 
   const getAllFilledCells = useCallback(() => {
     const filledCells = [];
@@ -258,8 +247,8 @@ export default function HomeScreen() {
     // update score: with level relationship
     // Update score and level together
     setScore((prevScore) => {
-      const newScore = prevScore + fullRows.length;
-      const newLevel = Math.floor(newScore / 5) + 1; // +1 so level starts at 1
+      const newScore = prevScore + fullRows.length * tripleScore;
+      const newLevel = Math.floor(newScore / 15) + 1; // +1 so level starts at 1
 
       // Update level and time based on new score
       setLevel(newLevel);
@@ -268,6 +257,8 @@ export default function HomeScreen() {
       const newTime = Math.max(100, defaultTime - 50 * (newLevel - 1));
       setTime(newTime);
       currentTime.current = newTime; // Update the ref too
+      // Reset trippleScore to 1 after scoring
+      setTripleScore(1);
 
       return newScore;
     });
@@ -310,7 +301,7 @@ export default function HomeScreen() {
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
     }, 500);
-  }, [placedBlocks, getAllFilledCells]);
+  }, [placedBlocks, getAllFilledCells, tripleScore]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -559,11 +550,6 @@ export default function HomeScreen() {
       fetchNewBlock,
     ]
   );
-  useEffect(() => {
-    if (!isPaused && !isReset && !isGameOver && isSoundOn) {
-      playSound();
-    }
-  }, [isGameOver, isReset, isPaused, playSound, soundRef, isSoundOn]);
 
   // Use Effect for fullRowDection
   useEffect(() => {
@@ -626,15 +612,18 @@ export default function HomeScreen() {
   const handlePause = () => {
     setIsPaused(!isPaused);
   };
+  const stopHorizontalSound = () => {
+    if (soundRef.current) {
+      soundRef.current.stop();
+    }
+  };
 
   // Updated handleSound function
   const handleSound = async () => {
     setIsSoundOn(!isSoundOn);
 
-    if (!isSoundOn && !isPaused && !isGameOver) {
-      await playSound();
-    } else {
-      await stopBackgroundMusic();
+    if (!isSoundOn) {
+      stopHorizontalSound();
     }
   };
 
@@ -742,63 +731,16 @@ export default function HomeScreen() {
       <View style={styles.divider} />
       {/* Control section */}
       <View style={styles.controlArea}>
-        {/* Setting: Pause, Sound, Reset */}
-        <View
-          style={{
-            display: "flex",
-          }}
-        >
-          <View style={styles.settingArea}>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={handlePause}
-            >
-              <Text>Pause</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={handleSound}
-            >
-              <Text>Sound</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.secondaryButton, styles.reset]}
-              onPress={handleReset}
-            >
-              <Text>Reset</Text>
-            </TouchableOpacity>
-          </View>
-          <View>
-            {/* Rotate button */}
-            <TouchableOpacity
-              style={styles.rotateButton}
-              onPress={() => {
-                // Always rotate
-                rotateBlock();
-                const now = Date.now();
-                if (rotationStartTime === null) {
-                  // First press
-                  setRotationStartTime(now);
-                } else if (now - rotationStartTime <= time) {
-                  // Still within period: allow rotation
-                } else {
-                  // Time expired: reset start time, block rotation this time
-                  console.log("expired");
-                  setRotationStartTime(now);
-                  moveDown(1); // Must move down when reach time
-                }
-              }}
-            >
-              <Text>Rotate</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
         {/* Up down Arrow & Rotate control */}
         <View style={styles.arrowArea}>
           {/* First row */}
-          <TouchableOpacity style={styles.button} onPress={() => moveDown(30)}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              moveDown(30);
+              setTripleScore(3);
+            }}
+          >
             <Text>Quick</Text>
           </TouchableOpacity>
 
@@ -935,7 +877,57 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         {/* Close Arrow Area */}
+        {/* Setting: Pause, Sound, Reset */}
+        <View style={{ display: "flex" }}>
+          <View style={styles.settingArea}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handlePause}
+            >
+              <Text>Pause</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleSound}
+            >
+              <Text>Sound</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.reset]}
+              onPress={handleReset}
+            >
+              <Text>Reset</Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            {/* Rotate button */}
+            <TouchableOpacity
+              style={styles.rotateButton}
+              onPress={() => {
+                // Always rotate
+                rotateBlock();
+                const now = Date.now();
+                if (rotationStartTime === null) {
+                  // First press
+                  setRotationStartTime(now);
+                } else if (now - rotationStartTime <= time) {
+                  // Still within period: allow rotation
+                } else {
+                  // Time expired: reset start time, block rotation this time
+                  console.log("expired");
+                  setRotationStartTime(now);
+                  moveDown(1); // Must move down when reach time
+                }
+              }}
+            >
+              <Text style={{ textAlign: "center" }}>Rotate</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
+
       {/* Close Control Area */}
     </SafeAreaView>
   );
@@ -1096,5 +1088,6 @@ const styles = StyleSheet.create({
       height: 1,
     },
     shadowOpacity: 0.5,
+    justifyContent: "center",
   },
 });
