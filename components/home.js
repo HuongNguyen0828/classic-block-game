@@ -713,7 +713,7 @@ export default function HomeScreen() {
             <View style={{ height: "40%" }}>
               <Text>Score: {score} </Text>
               <Text>Level: {level} </Text>
-              <Text>Speed: {700 / time}</Text>
+              <Text>Speed: {parseInt(700 / time)}</Text>
             </View>
             <View style={{ height: "30%", alignItems: "center" }}>
               <Text>Preview Next</Text>

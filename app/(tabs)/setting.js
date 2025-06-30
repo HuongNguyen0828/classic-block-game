@@ -1,17 +1,16 @@
 import { useState } from "react";
-import { Input, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import Feather from "@expo/vector-icons/Feather";
 
-const SpeedSetup = ({ onStart }) => {
-  const [selectedSpeed, setSelectedSpeed] = useState("Normal");
-  const [customSpeed, setCustomSpeed] = useState(1);
-
-  const speeds = [
-    { label: "Slow", value: 800 },
-    { label: "Normal", value: 500 },
-    { label: "Fast", value: 300 },
-  ];
+const SpeedSetup = ({ currentSpeed }) => {
+  const [customSpeed, setCustomSpeed] = useState(currentSpeed);
 
   const handleMinus = () => {
     if (customSpeed > 1) {
@@ -23,10 +22,6 @@ const SpeedSetup = ({ onStart }) => {
       setCustomSpeed(customSpeed + 1);
     }
   };
-  const handleStart = () => {
-    const chosen = speeds.find((s) => s.label === selectedSpeed);
-    onStart(chosen.value); // Pass the speed value to parent
-  };
 
   return (
     <View style={styles.container}>
@@ -35,14 +30,17 @@ const SpeedSetup = ({ onStart }) => {
         <TouchableOpacity style={styles.optionButton} onPress={handlePlus}>
           <Feather name="plus-circle" size={24} color="black" />
         </TouchableOpacity>
-        <Input placeholder="Custom Speed: 1, 2, 3.. 8" keyboardType="numeric" />
+        <TextInput
+          placeholder="Custom Speed: 1, 2, 3.. 8"
+          keyboardType="numeric"
+          defaultValue={currentSpeed}
+          onChangeText={(e) => setCustomSpeed(parseInt(e.nativeEvent.text))}
+        />
 
         <TouchableOpacity optionButton onPress={handleMinus}>
           <Feather name="minus-circle" size={24} color="black" />
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.startButton}></TouchableOpacity>
     </View>
   );
 };
