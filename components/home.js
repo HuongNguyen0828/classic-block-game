@@ -216,24 +216,24 @@ export default function HomeScreen() {
       // Alert: either Quit (out of game: Pause ) or Continue (meaning same as Reset)
       Alert.alert("Game over", "Do you want to play again or Quit?", [
         {
-          text: "Play Again",
+          text: "Play All Over Again",
           onPress: () => {
-            console.log("Continue Pressed");
-            setIsReset(true);
+            handleReset();
           },
           style: "default",
         },
         {
-          text: "Quit",
+          text: "Restart this level", // To play at same level
           onPress: () => {
-            console.log("Quit Pressed");
-            setIsPaused(true);
+            setPlacedBlocks([]); // clear out PlacedBlocks
+            setCurrentSpeed(normalSpeed.current);
+            setIsGameOver(false); // to let block moving
           },
           style: "destructive",
         },
       ]);
     }
-  }, [getAllFilledCells]);
+  }, [getAllFilledCells, setCurrentSpeed]);
 
   // Full row detection
   const fullRowDetection = useCallback(() => {
@@ -662,7 +662,6 @@ export default function HomeScreen() {
   };
   return (
     <SafeAreaView style={styles.container}>
-      {console.log("Current Speed: ", currentSpeed)}
       {/* Heading */}
       <View style={{ height: 30 }}>
         <Text style={styles.heading}>Block Game</Text>
