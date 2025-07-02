@@ -14,6 +14,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useSpeed } from "../app/context/speedContext"; // Import the speed context
 import Block from "./block";
 import BlockList from "./block-list";
 import Box from "./box";
@@ -91,9 +92,6 @@ for (let i = 0; i < 20; i++) {
 }
 
 export default function HomeScreen() {
-  // Loading state
-  const [isLoading, setIsLoading] = useState(true);
-
   // Setting up state variables
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -117,6 +115,7 @@ export default function HomeScreen() {
   const [level, setLevel] = useState(1);
   const [time, setTime] = useState(defaultTime);
   const [fullRowsDetected, setFullRowDetected] = useState([]); // For styling before clearing out of placedBlocks
+  const { currentSpeed, setCurrentSpeed } = useSpeed(); // Current speed of the game
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -210,7 +209,7 @@ export default function HomeScreen() {
       setIsGameOver(true);
 
       // Alert: either Quit (out of game: Pause ) or Continue (meaning same as Reset)
-      Alert.alert("Game Over", "Do you want to play again or Quit?", [
+      Alert.alert("Game over", "Do you want to play again or Quit?", [
         {
           text: "Play Again",
           onPress: () => {
@@ -276,6 +275,9 @@ export default function HomeScreen() {
       const newTime = Math.max(100, defaultTime - 50 * (newLevel - 1));
       setTime(newTime);
       currentTime.current = newTime; // Update the ref too
+
+      setCurrentSpeed(Math.floor(700 / newTime)); // Update speedPassing based on new time
+
       // Reset trippleScore to 1 after scoring
       setTripleScore(1);
 
@@ -641,6 +643,7 @@ export default function HomeScreen() {
   };
   return (
     <SafeAreaView style={styles.container}>
+      {console.log("Current Speed: ", currentSpeed)}
       {/* Heading */}
       <View style={{ height: 30 }}>
         <Text style={styles.heading}>Block Game</Text>
@@ -713,7 +716,7 @@ export default function HomeScreen() {
             <View style={{ height: "40%" }}>
               <Text>Score: {score} </Text>
               <Text>Level: {level} </Text>
-              <Text>Speed: {parseInt(700 / time)}</Text>
+              <Text>Speed: {currentSpeed}</Text>
             </View>
             <View style={{ height: "30%", alignItems: "center" }}>
               <Text>Preview Next</Text>

@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import HomeScreen from "../../components/home.js"; // Replace with your actual game component
-import SpeedSetup from "./setting"; // Import the settings component
 
-const GameWrapper = ({ currentSpeed }) => {
+const GameWrapper = () => {
   const [isLoading, setIsLoading] = useState(true);
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -38,8 +37,6 @@ const GameWrapper = ({ currentSpeed }) => {
 
     return (
       <View style={styles.loadingContainer}>
-        {true && <SpeedSetup currentSpeed={currentSpeed} />}{" "}
-        {/* Replace with actual speed setup component */}
         <Text style={styles.header}>Tetris Puzzle Block</Text>
         <Text style={styles.loadingText}>Loading Game...</Text>
         <View style={styles.progressBarContainer}>
