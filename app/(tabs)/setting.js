@@ -31,7 +31,7 @@ const SpeedSetup = () => {
           <Feather name="plus-circle" size={24} color="white" />
         </TouchableOpacity>
         <TextInput
-          placeholder="Custom Speed: 1, 2, 3.. 8"
+          placeholder="1, 2, 3.. 8"
           keyboardType="numeric"
           value={String(currentSpeed)} // get the value as a string
           style={styles.textInput}

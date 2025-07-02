@@ -1,4 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useIsFocused } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -92,6 +93,8 @@ for (let i = 0; i < 20; i++) {
 }
 
 export default function HomeScreen() {
+  // Check if the screen is focused
+  const isFocused = useIsFocused();
   // Setting up state variables
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -121,6 +124,8 @@ export default function HomeScreen() {
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
   const currentTime = useRef(time); // To track of current time before LongPress
+
+  const normalSpeed = useRef(currentSpeed); // To track of current speed before custom speed setting
 
   const [rotationStartTime, setRotationStartTime] = useState(null);
 
@@ -569,6 +574,16 @@ export default function HomeScreen() {
     ]
   );
 
+  // When the screen is focused, reset the game
+  useEffect(() => {
+    if (!isFocused) {
+      // Stop or pause the game
+      setIsPaused(true);
+      return;
+    }
+    setIsPaused(false); // Resume the game when focused
+  }, [isFocused]);
+
   // Use Effect for fullRowDection
   useEffect(() => {
     if (placedBlocks.length === 0) return;
@@ -581,7 +596,10 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
 
     if (isLongPressDown) setTime(50); // Make time for faster speed
-    else setTime(currentTime.current); // Back to normal time
+    if (currentSpeed !== normalSpeed.current) {
+      setTime(700 / currentSpeed); // Set time based on currentSpeed
+      currentTime.current = 700 / currentSpeed; // Update the currentTime ref
+    } else setTime(currentTime.current); // Back to normal time
     // Animate the block down
     const gameInterval = setInterval(() => {
       moveDown(1);
@@ -590,7 +608,7 @@ export default function HomeScreen() {
     return () => {
       clearInterval(gameInterval);
     };
-  }, [isPaused, isGameOver, moveDown, time, isLongPressDown]);
+  }, [isPaused, isGameOver, moveDown, time, isLongPressDown, currentSpeed]);
 
   // Continuous left movement while holding the button
   useEffect(() => {
@@ -627,6 +645,7 @@ export default function HomeScreen() {
     setDisableButton(false);
     currentTime.current = defaultTime;
   };
+
   const handlePause = () => {
     setIsPaused(!isPaused);
   };
