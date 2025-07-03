@@ -30,6 +30,22 @@ const playGroundHeight = 200;
 const playGroundWidth = 200;
 const defaultTime = 700;
 
+const timeSpeedTable = [
+  { level: 1, time: 700, speed: 1 },
+  { level: 2, time: 650, speed: 2 },
+  { level: 3, time: 600, speed: 3 },
+  { level: 4, time: 550, speed: 4 },
+  { level: 5, time: 500, speed: 5 },
+  { level: 6, time: 450, speed: 6 },
+  { level: 7, time: 400, speed: 7 },
+  { level: 8, time: 350, speed: 8 },
+  { level: 9, time: 300, speed: 9 },
+  { level: 10, time: 250, speed: 10 },
+  { level: 11, time: 200, speed: 11 },
+  { level: 12, time: 150, speed: 12 },
+  { level: 13, time: 100, speed: 13 },
+];
+
 const Z = [
   [0, 1],
   [1, 1],
@@ -124,7 +140,6 @@ export default function HomeScreen() {
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
   const currentTime = useRef(time); // To track of current time before LongPress
-
   const normalSpeed = useRef(currentSpeed); // To track of current speed before custom speed setting
 
   const [rotationStartTime, setRotationStartTime] = useState(null);
@@ -273,15 +288,20 @@ export default function HomeScreen() {
       const newScore = prevScore + fullRows.length * tripleScore;
       const newLevel = Math.floor(newScore / 15) + 1; // +1 so level starts at 1
 
-      // Update level and time based on new score
+      // Update level  on new score
       setLevel(newLevel);
+      // Update and time based on currentSpeed, find level. CANNOT directly update currentSpeed because of MUST NOT call state-updating functions while rendering
+      const levelwCurrentSpeed = timeSpeedTable.find(
+        (set) => set.speed === currentSpeed
+      ).level;
+      const newLevelwCurrentSpeed =
+        levelwCurrentSpeed + Math.floor(newScore / 15);
 
-      // Calculate new time based on level
-      const newTime = Math.max(100, defaultTime - 50 * (newLevel - 1));
-      setTime(newTime);
-      currentTime.current = newTime; // Update the ref too
-
-      setCurrentSpeed(Math.floor(700 / newTime)); // Update speedPassing based on new time
+      const newSetTimeSpeed = timeSpeedTable.find(
+        (set) => set.level === newLevelwCurrentSpeed
+      );
+      setTime(newSetTimeSpeed.time);
+      currentTime.current = newSetTimeSpeed.time;
 
       // Reset trippleScore to 1 after scoring
       setTripleScore(1);
@@ -327,7 +347,7 @@ export default function HomeScreen() {
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
     }, 500);
-  }, [placedBlocks, getAllFilledCells, tripleScore]);
+  }, [placedBlocks, getAllFilledCells, tripleScore, currentSpeed]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -392,7 +412,6 @@ export default function HomeScreen() {
     // Find max length of the block
 
     const rotatedWidth = rotatedBlock[0].length;
-    const rotatedHeight = rotatedBlock.length;
     let newX = blockPosition.x;
     // if already reach the boundary to the right, rotate inside the boundary
     if (blockPosition.x + rotatedWidth * 10 > playGroundWidth) {
@@ -596,10 +615,9 @@ export default function HomeScreen() {
     if (isGameOver || isPaused) return;
 
     if (isLongPressDown) setTime(50); // Make time for faster speed
-    if (currentSpeed !== normalSpeed.current) {
-      setTime(700 / currentSpeed); // Set time based on currentSpeed
-      currentTime.current = 700 / currentSpeed; // Update the currentTime ref
-    } else setTime(currentTime.current); // Back to normal time
+    else if (currentSpeed !== normalSpeed.current)
+      setCurrentSpeed(timeSpeedTable.find((set) => (set.time = time)).speed);
+    else setTime(currentTime.current); // Back to normal time
     // Animate the block down
     const gameInterval = setInterval(() => {
       moveDown(1);
@@ -608,7 +626,15 @@ export default function HomeScreen() {
     return () => {
       clearInterval(gameInterval);
     };
-  }, [isPaused, isGameOver, moveDown, time, isLongPressDown, currentSpeed]);
+  }, [
+    isPaused,
+    isGameOver,
+    moveDown,
+    time,
+    isLongPressDown,
+    currentSpeed,
+    setCurrentSpeed,
+  ]);
 
   // Continuous left movement while holding the button
   useEffect(() => {
