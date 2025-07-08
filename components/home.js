@@ -21,6 +21,9 @@ import BlockList from "./block-list";
 import Box from "./box";
 import FullRow from "./fullRow";
 
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
 // For sounds
 import { Audio } from "expo-av";
 // Playing sound
@@ -102,8 +105,8 @@ const randomPosition = (blockWidth = 20) => {
 const boxes = [];
 
 for (let i = 0; i < 20; i++) {
-  boxes.push([]); // create a new row: 41 rows
-  for (let j = 0; j < 19; j++) {
+  boxes.push([]); // create a new row: 20 rows
+  for (let j = 0; j < 20; j++) {
     boxes[i].push(1); // push 1 into each column of that row: 20 columns
   }
 }
@@ -774,7 +777,7 @@ export default function HomeScreen() {
 
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
-            <View style={{ height: "40%" }}>
+            <View style={{ height: "30%" }}>
               <Text>Score: {score} </Text>
               <Text>Level: {level} </Text>
               <Text>Speed: {currentSpeed}</Text>
@@ -785,22 +788,18 @@ export default function HomeScreen() {
             </View>
             <View
               style={{
-                height: "30%",
+                height: "40%",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 3,
+                justifyContent: "space-around",
               }}
             >
-              <Text>
-                Status:{" "}
-                {isPaused
-                  ? "Pause"
-                  : isGameOver
-                  ? "Game Over"
-                  : isReset
-                  ? "Reset"
-                  : "Play"}
-              </Text>
+              {isPaused ? (
+                <MaterialCommunityIcons name="human" size={30} color="black" />
+              ) : (
+                <FontAwesome5 name="running" size={30} color="black" />
+              )}
+
               {/* Sound icon */}
 
               <Ionicons
@@ -1050,12 +1049,9 @@ const styles = StyleSheet.create({
     width: 300, // 78% + 10% each for blockList = 98% = width of the main Player section
     height: playGroundHeight,
     backgroundColor: "#E0E0E0",
+    borderWidth: 2,
     borderColor: "#000",
-    borderWidth: 3,
     flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 5,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -1083,16 +1079,11 @@ const styles = StyleSheet.create({
     width: playGroundWidth, //200 px; 20 boxes of 10 px each
     height: playGroundHeight, // 400 px: 40 boxes of 10 px each
     backgroundColor: "#F0F0E0",
-    borderRadius: 3,
-    borderColor: "#000",
     borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 5,
+    shadowColor: "#000",
   },
   scoreRecord: {
-    width: 90,
+    width: 95,
     height: "100%",
     backgroundColor: "#D3D3D3",
   },
