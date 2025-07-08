@@ -505,7 +505,7 @@ export default function HomeScreen() {
 
   const fetchNewBlock = useCallback(() => {
     setCurrentBlock(nextBlock);
-    const newRandomPosition = randomPosition();
+    const newRandomPosition = randomPosition(nextBlock);
     setBlockPosition(newRandomPosition);
     setNextBlock(randomBlock());
     setDisableButton(false);
@@ -686,8 +686,9 @@ export default function HomeScreen() {
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
   const handleReset = () => {
-    const randomPositionReset = randomPosition(nextBlock);
-    setCurrentBlock(randomBlock());
+    const newBlock = randomBlock(); // Generate a new block
+    const randomPositionReset = randomPosition(newBlock);
+    setCurrentBlock(newBlock); // Reset the current block
     setBlockPosition(randomPositionReset);
     setPlacedBlocks([]); // Reset the placed blocks
     setScore(0); // Reset the scores
