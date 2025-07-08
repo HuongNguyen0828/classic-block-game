@@ -92,8 +92,9 @@ const randomBlock = () => {
   return blocksWithLReversed[randomIndex]; // Return a random block from the array
 };
 
-const randomPosition = (blockWidth = 20) => {
+const randomPosition = (block) => {
   const minWidth = 0; //
+  const blockWidth = Math.max(...block.map((row) => row.length)) * 10;
   const maxWidth = playGroundWidth - blockWidth; //
   const x =
     Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
@@ -258,11 +259,17 @@ export default function HomeScreen() {
   const fullRowDetection = useCallback(() => {
     const filledCells = getAllFilledCells();
 
+    // Debug: Log all filled cells
+    console.log("All filled cells:", filledCells);
+
     // Count how many cells exist in each row (y)
     const rowCounts = {}; // a object: { "10": 1, "20": 3, "30": 10}
     for (const cell of filledCells) {
       rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, index of rowCounts= 0, 1, 2, 3.
     }
+
+    // Debug: Log row counts
+    console.log("Row counts:", rowCounts);
 
     const fullRows = Object.keys(rowCounts)
       .filter((y) => rowCounts[y] === playGroundWidth / 10) // 200px width, each cell is 10px wide => 20 cells
@@ -479,7 +486,8 @@ export default function HomeScreen() {
       x: blockPosition.x + 10,
     };
     // Check boundaries and collisions
-    const maxX = playGroundWidth - currentBlock[0].length * 10;
+    const blockWidth = Math.max(...currentBlock.map((row) => row.length)) * 10; // Calculate the width of the current block
+    const maxX = playGroundWidth - blockWidth;
     if (newPosition.x > maxX || collisionDetection(currentBlock, newPosition)) {
       return;
     }
@@ -678,7 +686,7 @@ export default function HomeScreen() {
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
   const handleReset = () => {
-    const randomPositionReset = randomPosition();
+    const randomPositionReset = randomPosition(nextBlock);
     setCurrentBlock(randomBlock());
     setBlockPosition(randomPositionReset);
     setPlacedBlocks([]); // Reset the placed blocks
