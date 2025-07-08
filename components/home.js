@@ -92,8 +92,9 @@ const randomBlock = () => {
   return blocksWithLReversed[randomIndex]; // Return a random block from the array
 };
 
-const randomPosition = (blockWidth = 20) => {
+const randomPosition = (block) => {
   const minWidth = 0; //
+  const blockWidth = Math.max(...block.map((row) => row.length)) * 10;
   const maxWidth = playGroundWidth - blockWidth; //
   const x =
     Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
@@ -121,8 +122,9 @@ export default function HomeScreen() {
   const [isReset, setIsReset] = useState(false);
 
   // Randomly generate a block and its position
-  const position = randomPosition(); // call it once, not multiple times
   const block = randomBlock(); // call it once, not multiple times
+  const position = randomPosition(block); // call it once, not multiple times
+
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [isMovingLeft, setIsMovingLeft] = useState(false);
@@ -258,11 +260,17 @@ export default function HomeScreen() {
   const fullRowDetection = useCallback(() => {
     const filledCells = getAllFilledCells();
 
+    // Debug: Log all filled cells
+    console.log("All filled cells:", filledCells);
+
     // Count how many cells exist in each row (y)
     const rowCounts = {}; // a object: { "10": 1, "20": 3, "30": 10}
     for (const cell of filledCells) {
       rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, index of rowCounts= 0, 1, 2, 3.
     }
+
+    // Debug: Log row counts
+    console.log("Row counts:", rowCounts);
 
     const fullRows = Object.keys(rowCounts)
       .filter((y) => rowCounts[y] === playGroundWidth / 10) // 200px width, each cell is 10px wide => 20 cells
@@ -479,7 +487,8 @@ export default function HomeScreen() {
       x: blockPosition.x + 10,
     };
     // Check boundaries and collisions
-    const maxX = playGroundWidth - currentBlock[0].length * 10;
+    const blockWidth = Math.max(...currentBlock.map((row) => row.length)) * 10; // Calculate the width of the current block
+    const maxX = playGroundWidth - blockWidth;
     if (newPosition.x > maxX || collisionDetection(currentBlock, newPosition)) {
       return;
     }
@@ -497,7 +506,7 @@ export default function HomeScreen() {
 
   const fetchNewBlock = useCallback(() => {
     setCurrentBlock(nextBlock);
-    const newRandomPosition = randomPosition();
+    const newRandomPosition = randomPosition(nextBlock);
     setBlockPosition(newRandomPosition);
     setNextBlock(randomBlock());
     setDisableButton(false);
@@ -678,8 +687,9 @@ export default function HomeScreen() {
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
   const handleReset = () => {
-    const randomPositionReset = randomPosition();
-    setCurrentBlock(randomBlock());
+    const newBlock = randomBlock(); // Generate a new block
+    const randomPositionReset = randomPosition(newBlock);
+    setCurrentBlock(newBlock); // Reset the current block
     setBlockPosition(randomPositionReset);
     setPlacedBlocks([]); // Reset the placed blocks
     setScore(0); // Reset the scores
@@ -1049,11 +1059,9 @@ const styles = StyleSheet.create({
     width: 300, // 78% + 10% each for blockList = 98% = width of the main Player section
     height: playGroundHeight,
     backgroundColor: "#E0E0E0",
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: "#000",
     flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -1081,15 +1089,11 @@ const styles = StyleSheet.create({
     width: playGroundWidth, //200 px; 20 boxes of 10 px each
     height: playGroundHeight, // 400 px: 40 boxes of 10 px each
     backgroundColor: "#F0F0E0",
-    borderRadius: 3,
-    borderColor: "#000",
-    // borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    borderWidth: 1,
     shadowColor: "#000",
   },
   scoreRecord: {
-    width: 90,
+    width: 95,
     height: "100%",
     backgroundColor: "#D3D3D3",
   },
