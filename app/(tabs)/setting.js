@@ -18,7 +18,7 @@ const SpeedSetup = () => {
     }
   };
   const handlePlus = () => {
-    if (currentSpeed < 8) {
+    if (currentSpeed < 13) {
       setCurrentSpeed(parseInt(currentSpeed) + 1);
     }
   };
@@ -31,12 +31,16 @@ const SpeedSetup = () => {
           <Feather name="plus-circle" size={24} color="white" />
         </TouchableOpacity>
         <TextInput
-          placeholder="1, 2, 3.. 8"
+          placeholder="1, 2, 3.. 13"
           keyboardType="numeric"
+          selectTextOnFocus
           value={String(currentSpeed)} // get the value as a string
           style={styles.textInput}
           onChangeText={(text) => {
-            setCurrentSpeed(text);
+            const speed = parseInt(text);
+            if (speed >= 1 && speed <= 13) {
+              setCurrentSpeed(speed);
+            }
           }} // parse the input to an integer
           returnKeyType="done" // ✅ shows "Done" on iOS
         />
@@ -48,7 +52,7 @@ const SpeedSetup = () => {
       <View style={styles.minMaxContainer}>
         <TouchableOpacity
           style={styles.optionButton}
-          onPress={() => setCurrentSpeed(8)}
+          onPress={() => setCurrentSpeed(13)}
         >
           <Text style={styles.optionText}>Max</Text>
         </TouchableOpacity>

@@ -21,6 +21,9 @@ import BlockList from "./block-list";
 import Box from "./box";
 import FullRow from "./fullRow";
 
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
 // For sounds
 import { Audio } from "expo-av";
 // Playing sound
@@ -102,8 +105,8 @@ const randomPosition = (blockWidth = 20) => {
 const boxes = [];
 
 for (let i = 0; i < 20; i++) {
-  boxes.push([]); // create a new row: 41 rows
-  for (let j = 0; j < 19; j++) {
+  boxes.push([]); // create a new row: 20 rows
+  for (let j = 0; j < 20; j++) {
     boxes[i].push(1); // push 1 into each column of that row: 20 columns
   }
 }
@@ -135,6 +138,7 @@ export default function HomeScreen() {
   const [time, setTime] = useState(defaultTime);
   const [fullRowsDetected, setFullRowDetected] = useState([]); // For styling before clearing out of placedBlocks
   const { currentSpeed, setCurrentSpeed } = useSpeed(); // Current speed of the game
+  const [needUpdateSpeed, setNeedUpdateSpeed] = useState(false);
 
   // list of blocks to render
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
@@ -274,6 +278,7 @@ export default function HomeScreen() {
       "50": 20
     }
     */
+    console.log("Full rows detected:", fullRows);
     // Render Full row Dectection to fullRowsDetected for styling before clearing
     setFullRowDetected(fullRows);
     // Clear rows after animation
@@ -286,25 +291,31 @@ export default function HomeScreen() {
     // Update score and level together
     setScore((prevScore) => {
       const newScore = prevScore + fullRows.length * tripleScore;
-      const newLevel = Math.floor(newScore / 15) + 1; // +1 so level starts at 1
+      const scale = Math.floor(newScore / 30);
+      const newLevel = scale + 1; // +1 so level starts at 1
 
       // Update level  on new score
-      setLevel(newLevel);
-      // Update and time based on currentSpeed, find level. CANNOT directly update currentSpeed because of MUST NOT call state-updating functions while rendering
-      const levelwCurrentSpeed = timeSpeedTable.find(
-        (set) => set.speed === currentSpeed
-      ).level;
-      const newLevelwCurrentSpeed =
-        levelwCurrentSpeed + Math.floor(newScore / 15);
+      if (newLevel > level) {
+        setLevel(newLevel);
 
-      const newSetTimeSpeed = timeSpeedTable.find(
-        (set) => set.level === newLevelwCurrentSpeed
-      );
-      setTime(newSetTimeSpeed.time);
-      currentTime.current = newSetTimeSpeed.time;
+        // Update and time based on currentSpeed, find level. CANNOT directly update currentSpeed because of MUST NOT call state-updating functions while rendering
+        const levelwCurrentSpeed = timeSpeedTable.find(
+          (set) => set.speed === currentSpeed
+        ).level;
+        const newLevelwCurrentSpeed = levelwCurrentSpeed + scale;
 
-      // Reset trippleScore to 1 after scoring
-      setTripleScore(1);
+        const newSetTimeSpeed = timeSpeedTable.find(
+          (set) => set.level === newLevelwCurrentSpeed
+        );
+        console.log(newSetTimeSpeed);
+
+        setTime(newSetTimeSpeed.time);
+        currentTime.current = newSetTimeSpeed.time;
+        setNeedUpdateSpeed(true); // Update only pendingSPeedUpdate, then update CurrentSpeed in useEffect()
+
+        // Reset trippleScore to 1 after scoring
+        setTripleScore(1);
+      }
 
       return newScore;
     });
@@ -342,12 +353,13 @@ export default function HomeScreen() {
 
         return newBlock;
       })
-      .filter((block) => block.type.length !== 0); // remove block empty
+      .filter((block) => block.type.length !== 0) // remove block empty
+      .sort((a, b) => b - a); // Sort from bottom to top
 
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
     }, 500);
-  }, [placedBlocks, getAllFilledCells, tripleScore, currentSpeed]);
+  }, [placedBlocks, getAllFilledCells, tripleScore, currentSpeed, level]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -397,7 +409,6 @@ export default function HomeScreen() {
   const rotateBlock = () => {
     if (!currentBlock || isPaused || isGameOver || disableButton || isAtBottom)
       return;
-    console.log("rotate");
 
     // Logic to rotate the block
     const rotatedBlock = currentBlock[0].map((_, colIndex) =>
@@ -610,14 +621,23 @@ export default function HomeScreen() {
     fullRowDetection();
   }, [placedBlocks, fullRowDetection]);
 
+  useEffect(() => {
+    if (needUpdateSpeed) {
+      const newSpeed = timeSpeedTable.find((set) => set.time === time).speed;
+      setCurrentSpeed(newSpeed);
+      setNeedUpdateSpeed(false);
+    }
+  }, [needUpdateSpeed, setCurrentSpeed, time]);
+
   // Unified game loop
   useEffect(() => {
     if (isGameOver || isPaused) return;
 
     if (isLongPressDown) setTime(50); // Make time for faster speed
-    else if (currentSpeed !== normalSpeed.current)
-      setCurrentSpeed(timeSpeedTable.find((set) => (set.time = time)).speed);
-    else setTime(currentTime.current); // Back to normal time
+    if (currentSpeed !== normalSpeed.current) {
+      setTime(700 / currentSpeed); // Set time based on currentSpeed
+      currentTime.current = 700 / currentSpeed; // Update the currentTime ref
+    } else setTime(currentTime.current); // Back to normal time
     // Animate the block down
     const gameInterval = setInterval(() => {
       moveDown(1);
@@ -757,7 +777,7 @@ export default function HomeScreen() {
 
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
-            <View style={{ height: "40%" }}>
+            <View style={{ height: "30%" }}>
               <Text>Score: {score} </Text>
               <Text>Level: {level} </Text>
               <Text>Speed: {currentSpeed}</Text>
@@ -768,22 +788,18 @@ export default function HomeScreen() {
             </View>
             <View
               style={{
-                height: "30%",
+                height: "40%",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 3,
+                justifyContent: "space-around",
               }}
             >
-              <Text>
-                Status:{" "}
-                {isPaused
-                  ? "Pause"
-                  : isGameOver
-                  ? "Game Over"
-                  : isReset
-                  ? "Reset"
-                  : "Play"}
-              </Text>
+              {isPaused ? (
+                <MaterialCommunityIcons name="human" size={30} color="black" />
+              ) : (
+                <FontAwesome5 name="running" size={30} color="black" />
+              )}
+
               {/* Sound icon */}
 
               <Ionicons
@@ -1033,12 +1049,11 @@ const styles = StyleSheet.create({
     width: 300, // 78% + 10% each for blockList = 98% = width of the main Player section
     height: playGroundHeight,
     backgroundColor: "#E0E0E0",
-    borderColor: "#000",
     borderWidth: 3,
+    borderColor: "#000",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 5,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -1068,11 +1083,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F0E0",
     borderRadius: 3,
     borderColor: "#000",
-    borderWidth: 1,
+    // borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 5,
+    shadowColor: "#000",
   },
   scoreRecord: {
     width: 90,
