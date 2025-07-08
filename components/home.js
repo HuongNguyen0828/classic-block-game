@@ -122,8 +122,9 @@ export default function HomeScreen() {
   const [isReset, setIsReset] = useState(false);
 
   // Randomly generate a block and its position
-  const position = randomPosition(); // call it once, not multiple times
   const block = randomBlock(); // call it once, not multiple times
+  const position = randomPosition(block); // call it once, not multiple times
+
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
   const [isMovingLeft, setIsMovingLeft] = useState(false);
