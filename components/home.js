@@ -92,9 +92,10 @@ const randomBlock = () => {
   return blocksWithLReversed[randomIndex]; // Return a random block from the array
 };
 
-const randomPosition = (blockWidth = 20) => {
+const randomPosition = (block) => {
   const minWidth = 0; //
   // const blockWidth = Math.max(...block.map((row) => row.length)) * 10;
+  const blockWidth = Math.max(...block.map((row) => row.length)) * 10;
   const maxWidth = playGroundWidth - blockWidth; //
   const x =
     Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
@@ -123,7 +124,7 @@ export default function HomeScreen() {
 
   // Randomly generate a block and its position
   const block = randomBlock(); // call it once, not multiple times
-  const position = randomPosition(); // call it once, not multiple times
+  const position = randomPosition(block); // call it once, not multiple times
 
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
@@ -502,7 +503,7 @@ export default function HomeScreen() {
 
   const fetchNewBlock = useCallback(() => {
     setCurrentBlock(nextBlock);
-    const newRandomPosition = randomPosition();
+    const newRandomPosition = randomPosition(nextBlock);
     setBlockPosition(newRandomPosition);
     setNextBlock(randomBlock());
     setDisableButton(false);
@@ -676,7 +677,7 @@ export default function HomeScreen() {
 
   const handleReset = () => {
     const newBlock = randomBlock(); // Generate a new block
-    const randomPositionReset = randomPosition();
+    const randomPositionReset = randomPosition(newBlock);
     setCurrentBlock(newBlock); // Reset the current block
     setBlockPosition(randomPositionReset);
     setPlacedBlocks([]); // Reset the placed blocks
