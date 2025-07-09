@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSpeed } from "../context/speedContext"; // Adjust the import path as necessary
+import { useSpeed } from "../../context/speedContext"; // Adjust the import path as necessary
 
 import Feather from "@expo/vector-icons/Feather";
 

@@ -15,7 +15,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useSpeed } from "../app/context/speedContext"; // Import the speed context
+import { useSpeed } from "../context/speedContext"; // Import the speed context
 import Block from "./block";
 import BlockList from "./block-list";
 import Box from "./box";
@@ -34,19 +34,19 @@ const playGroundWidth = 200;
 const defaultTime = 700;
 
 const timeSpeedTable = [
-  { level: 1, time: 700, speed: 1 },
-  { level: 2, time: 650, speed: 2 },
-  { level: 3, time: 600, speed: 3 },
-  { level: 4, time: 550, speed: 4 },
-  { level: 5, time: 500, speed: 5 },
-  { level: 6, time: 450, speed: 6 },
-  { level: 7, time: 400, speed: 7 },
-  { level: 8, time: 350, speed: 8 },
-  { level: 9, time: 300, speed: 9 },
-  { level: 10, time: 250, speed: 10 },
-  { level: 11, time: 200, speed: 11 },
-  { level: 12, time: 150, speed: 12 },
-  { level: 13, time: 100, speed: 13 },
+  { level: 1, time: 1000, speed: 1 },
+  { level: 2, time: 950, speed: 2 },
+  { level: 3, time: 900, speed: 3 },
+  { level: 4, time: 850, speed: 4 },
+  { level: 5, time: 800, speed: 5 },
+  { level: 6, time: 700, speed: 6 },
+  { level: 7, time: 600, speed: 7 },
+  { level: 8, time: 500, speed: 8 },
+  { level: 9, time: 400, speed: 9 },
+  { level: 10, time: 350, speed: 10 },
+  { level: 11, time: 300, speed: 11 },
+  { level: 12, time: 250, speed: 12 },
+  { level: 13, time: 200, speed: 13 },
 ];
 
 const Z = [
@@ -92,9 +92,9 @@ const randomBlock = () => {
   return blocksWithLReversed[randomIndex]; // Return a random block from the array
 };
 
-const randomPosition = (block) => {
+const randomPosition = (blockWidth = 20) => {
   const minWidth = 0; //
-  const blockWidth = Math.max(...block.map((row) => row.length)) * 10;
+  // const blockWidth = Math.max(...block.map((row) => row.length)) * 10;
   const maxWidth = playGroundWidth - blockWidth; //
   const x =
     Math.floor((Math.random() * (maxWidth - minWidth + 1)) / 10) * 10 +
@@ -123,7 +123,7 @@ export default function HomeScreen() {
 
   // Randomly generate a block and its position
   const block = randomBlock(); // call it once, not multiple times
-  const position = randomPosition(block); // call it once, not multiple times
+  const position = randomPosition(); // call it once, not multiple times
 
   const [currentBlock, setCurrentBlock] = useState(block); // Set initial block
   const [blockPosition, setBlockPosition] = useState(position); // Set initial position
@@ -146,6 +146,7 @@ export default function HomeScreen() {
   const [placedBlocks, setPlacedBlocks] = useState([]); // Set initial block list
 
   const currentTime = useRef(time); // To track of current time before LongPress
+
   const normalSpeed = useRef(currentSpeed); // To track of current speed before custom speed setting
 
   const [rotationStartTime, setRotationStartTime] = useState(null);
@@ -260,17 +261,11 @@ export default function HomeScreen() {
   const fullRowDetection = useCallback(() => {
     const filledCells = getAllFilledCells();
 
-    // Debug: Log all filled cells
-    console.log("All filled cells:", filledCells);
-
     // Count how many cells exist in each row (y)
     const rowCounts = {}; // a object: { "10": 1, "20": 3, "30": 10}
     for (const cell of filledCells) {
       rowCounts[cell.y] = (rowCounts[cell.y] || 0) + 1; // = rowCounts[cell.y] + 1; initially, index of rowCounts= 0, 1, 2, 3.
     }
-
-    // Debug: Log row counts
-    console.log("Row counts:", rowCounts);
 
     const fullRows = Object.keys(rowCounts)
       .filter((y) => rowCounts[y] === playGroundWidth / 10) // 200px width, each cell is 10px wide => 20 cells
@@ -431,6 +426,7 @@ export default function HomeScreen() {
     // Find max length of the block
 
     const rotatedWidth = rotatedBlock[0].length;
+    const rotatedHeight = rotatedBlock.length;
     let newX = blockPosition.x;
     // if already reach the boundary to the right, rotate inside the boundary
     if (blockPosition.x + rotatedWidth * 10 > playGroundWidth) {
@@ -506,7 +502,7 @@ export default function HomeScreen() {
 
   const fetchNewBlock = useCallback(() => {
     setCurrentBlock(nextBlock);
-    const newRandomPosition = randomPosition(nextBlock);
+    const newRandomPosition = randomPosition();
     setBlockPosition(newRandomPosition);
     setNextBlock(randomBlock());
     setDisableButton(false);
@@ -655,15 +651,7 @@ export default function HomeScreen() {
     return () => {
       clearInterval(gameInterval);
     };
-  }, [
-    isPaused,
-    isGameOver,
-    moveDown,
-    time,
-    isLongPressDown,
-    currentSpeed,
-    setCurrentSpeed,
-  ]);
+  }, [isPaused, isGameOver, moveDown, time, isLongPressDown, currentSpeed]);
 
   // Continuous left movement while holding the button
   useEffect(() => {
@@ -688,7 +676,7 @@ export default function HomeScreen() {
 
   const handleReset = () => {
     const newBlock = randomBlock(); // Generate a new block
-    const randomPositionReset = randomPosition(newBlock);
+    const randomPositionReset = randomPosition();
     setCurrentBlock(newBlock); // Reset the current block
     setBlockPosition(randomPositionReset);
     setPlacedBlocks([]); // Reset the placed blocks
@@ -700,6 +688,7 @@ export default function HomeScreen() {
     setTime(defaultTime);
     setDisableButton(false);
     currentTime.current = defaultTime;
+    setCurrentSpeed(1); // Reset the current speed
   };
 
   const handlePause = () => {
