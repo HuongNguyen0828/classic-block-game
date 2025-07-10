@@ -1072,8 +1072,9 @@ const styles = StyleSheet.create({
   },
   mainPlayerYardwithScore: {
     width: 300, // 78% + 10% each for blockList = 98% = width of the main Player section
-    height: playGroundHeight,
+    height: playGroundHeight + 5, // 400 px + 10 px for the border
     backgroundColor: "#E0E0E0",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: "#000",
     flexDirection: "row",
