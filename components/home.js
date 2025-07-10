@@ -282,7 +282,8 @@ export default function HomeScreen() {
       "50": 20
     }
     */
-    console.log("Full rows detected:", fullRows);
+    console.log("-------Full rows detected:", fullRows);
+    console.log("****Row counts:", rowCounts);
     // Render Full row Dectection to fullRowsDetected for styling before clearing
     setFullRowDetected(fullRows);
     // Clear rows after animation
@@ -588,6 +589,10 @@ export default function HomeScreen() {
         const newPlacedBlocks = [...placedBlocks, newBlock];
         // Add current block to placedBlocks and spawn new one
         setPlacedBlocks(newPlacedBlocks);
+
+        // Debug with placedBlocks
+        console.log("Placed blocks:  ");
+        newPlacedBlocks.map((block) => console.log("Blocks:", block));
 
         fetchNewBlock();
 
