@@ -246,17 +246,20 @@ export default function HomeScreen() {
           style: "default",
         },
         {
-          text: "Restart this level", // To play at same level
+          text: "Restart at this level", // To play at same level
           onPress: () => {
             setPlacedBlocks([]); // clear out PlacedBlocks
-            setCurrentSpeed(normalSpeed.current);
+            const newSpeed = timeSpeedTable.find(
+              (set) => set.level === level
+            ).speed;
+            setCurrentSpeed(newSpeed); // Reset the current speed to the level speed
             setIsGameOver(false); // to let block moving
           },
           style: "destructive",
         },
       ]);
     }
-  }, [getAllFilledCells, setCurrentSpeed, handleReset]);
+  }, [getAllFilledCells, setCurrentSpeed, handleReset, level]);
 
   // Full row detection
   const fullRowDetection = useCallback(() => {
