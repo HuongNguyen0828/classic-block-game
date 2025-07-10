@@ -357,9 +357,9 @@ export default function HomeScreen() {
 
         return newBlock;
       })
-      .filter((block) => block.type.length !== 0) // remove block empty
-      .sort((a, b) => b - a); // Sort from bottom to top
+      .filter((block) => block.type.length !== 0); // remove block empty
 
+    // Set the new placed blocks after shifting down
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
     }, 500);
