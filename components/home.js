@@ -346,9 +346,11 @@ export default function HomeScreen() {
         for (let row = 0; row < block.type.length; row++) {
           const y = block.position.y + row * 10;
 
-          // Check count if it > AND = each item, count++
+          // Check count if it > AND = each item, count++, e.g. fullRows = ["190", "180", "170"].
           countShifts = fullRows.filter((fullRow) => y <= fullRow).length;
         }
+        // If no shifts needed, return the block as is
+        if (countShifts === 0) return block;
 
         const newPosition = {
           x: block.position.x,
