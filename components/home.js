@@ -34,19 +34,19 @@ const playGroundWidth = 200;
 const defaultTime = 700;
 
 const timeSpeedTable = [
-  { level: 1, time: 1000, speed: 1 },
-  { level: 2, time: 950, speed: 2 },
-  { level: 3, time: 900, speed: 3 },
-  { level: 4, time: 850, speed: 4 },
-  { level: 5, time: 800, speed: 5 },
-  { level: 6, time: 700, speed: 6 },
-  { level: 7, time: 600, speed: 7 },
-  { level: 8, time: 500, speed: 8 },
-  { level: 9, time: 400, speed: 9 },
-  { level: 10, time: 350, speed: 10 },
-  { level: 11, time: 300, speed: 11 },
-  { level: 12, time: 250, speed: 12 },
-  { level: 13, time: 200, speed: 13 },
+  { level: 1, time: 800, speed: 1 },
+  { level: 2, time: 750, speed: 2 },
+  { level: 3, time: 700, speed: 3 },
+  { level: 4, time: 650, speed: 4 },
+  { level: 5, time: 600, speed: 5 },
+  { level: 6, time: 500, speed: 6 },
+  { level: 7, time: 400, speed: 7 },
+  { level: 8, time: 300, speed: 8 },
+  { level: 9, time: 250, speed: 9 },
+  { level: 10, time: 200, speed: 10 },
+  { level: 11, time: 150, speed: 11 },
+  { level: 12, time: 100, speed: 12 },
+  { level: 13, time: 50, speed: 13 },
 ];
 
 const Z = [
@@ -269,7 +269,7 @@ export default function HomeScreen() {
     }
 
     const fullRows = Object.keys(rowCounts)
-      .filter((y) => rowCounts[y] === playGroundWidth / 10) // 200px width, each cell is 10px wide => 20 cells
+      .filter((y) => rowCounts[y] >= playGroundWidth / 10) // 200px width, each cell is 10px wide => 20 cells
       .map((y) => parseInt(y));
 
     if (fullRows.length === 0) return; // empty object
@@ -300,7 +300,7 @@ export default function HomeScreen() {
       const newLevel = scale + 1; // +1 so level starts at 1
 
       // Update level  on new score
-      if (newLevel > level) {
+      if ((newLevel > level) & (newLevel <= timeSpeedTable.length)) {
         setLevel(newLevel);
 
         // Update and time based on currentSpeed, find level. CANNOT directly update currentSpeed because of MUST NOT call state-updating functions while rendering
