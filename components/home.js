@@ -299,7 +299,7 @@ export default function HomeScreen() {
       const scale = Math.floor(newScore / 30);
       const newLevel = scale + 1; // +1 so level starts at 1
 
-      // Update level  on new score
+      // Update level  on new score: Must be greater than current level and within the bounds of timeSpeedTable
       if ((newLevel > level) & (newLevel <= timeSpeedTable.length)) {
         setLevel(newLevel);
 
