@@ -256,7 +256,7 @@ export default function HomeScreen() {
         },
       ]);
     }
-  }, [getAllFilledCells, setCurrentSpeed]);
+  }, [getAllFilledCells, setCurrentSpeed, handleReset]);
 
   // Full row detection
   const fullRowDetection = useCallback(() => {
@@ -641,8 +641,11 @@ export default function HomeScreen() {
 
     if (isLongPressDown) setTime(50); // Make time for faster speed
     if (currentSpeed !== normalSpeed.current) {
-      setTime(700 / currentSpeed); // Set time based on currentSpeed
-      currentTime.current = 700 / currentSpeed; // Update the currentTime ref
+      const newTime = timeSpeedTable.find(
+        (set) => set.speed === currentSpeed
+      ).time;
+      setTime(newTime); // Update time based on currentSpeed
+      currentTime.current = newTime; // Update the currentTime ref
     } else setTime(currentTime.current); // Back to normal time
     // Animate the block down
     const gameInterval = setInterval(() => {
@@ -675,7 +678,7 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     const newBlock = randomBlock(); // Generate a new block
     const randomPositionReset = randomPosition(newBlock);
     setCurrentBlock(newBlock); // Reset the current block
@@ -690,7 +693,19 @@ export default function HomeScreen() {
     setDisableButton(false);
     currentTime.current = defaultTime;
     setCurrentSpeed(1); // Reset the current speed
-  };
+  }, [
+    setCurrentBlock,
+    setCurrentSpeed,
+    setBlockPosition,
+    setPlacedBlocks,
+    setScore,
+    setLevel,
+    setIsGameOver,
+    setIsPaused,
+    setIsReset,
+    setTime,
+    setDisableButton,
+  ]);
 
   const handlePause = () => {
     setIsPaused(!isPaused);
