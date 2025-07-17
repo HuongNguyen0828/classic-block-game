@@ -16,6 +16,7 @@ import { StatusBar } from "expo-status-bar";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSpeed } from "../context/speedContext"; // Import the speed context
+import soundManager from "../utils/sound-manager"; // Import the sound manager
 import Block from "./block";
 import BlockList from "./block-list";
 import Box from "./box";
@@ -25,7 +26,6 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 // For sounds
-import { Audio } from "expo-av";
 // Playing sound
 
 const { width, height } = Dimensions.get("window");
@@ -155,41 +155,19 @@ export default function HomeScreen() {
   const moveHorizontalSoundRef = useRef(null);
   const clearRowSoundRef = useRef(null);
 
+  // Replace new sound functions:
   const playMoveHorizontal = async () => {
-    if (!isSoundOn) return; // If sound is off, do not play sound
-    const { sound } = await Audio.Sound.createAsync(
-      require("../assets/sounds/horizontal.wav")
-    );
-    moveHorizontalSoundRef.current = sound; // Store the sound reference
-
-    await sound.playAsync();
+    if (!isSoundOn) return;
+    await soundManager.playSound("horizontal");
   };
 
   const playHappyRowClear = async () => {
-    if (!isSoundOn) return; // If sound is off, do not play sound
-    const { sound } = await Audio.Sound.createAsync(
-      require("../assets/sounds/happy_row_clear.wav")
-    );
-    clearRowSoundRef.current = sound; // Store the sound reference
-
-    await sound.playAsync();
+    if (!isSoundOn) return;
+    await soundManager.playSound("clearRow");
   };
 
-  // Stop when Sound is off
-  const stopMoveHorizontal = async () => {
-    if (moveHorizontalSoundRef.current) {
-      await moveHorizontalSoundRef.current.stopAsync();
-      await moveHorizontalSoundRef.current.unloadAsync();
-      moveHorizontalSoundRef.current = null;
-    }
-  };
-
-  const stopClearRowSound = async () => {
-    if (clearRowSoundRef.current) {
-      await clearRowSoundRef.current.stopAsync();
-      await clearRowSoundRef.current.unloadAsync();
-      clearRowSoundRef.current = null;
-    }
+  const stopAllSounds = async () => {
+    await soundManager.stopAllSounds();
   };
 
   // Logic for clear full row and record score
@@ -625,6 +603,7 @@ export default function HomeScreen() {
     if (!isFocused) {
       // Stop or pause the game
       setIsPaused(true);
+      stopAllSounds(); // ADD this line for managing sound when not necessary playing
       return;
     }
     setIsPaused(false); // Resume the game when focused
@@ -688,6 +667,27 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
 
+  // ADD useEffect for sound management inside system
+  useEffect(() => {
+    const initializeSounds = async () => {
+      await soundManager.initialize();
+      await soundManager.loadSound(
+        "horizontal",
+        require("../assets/sounds/horizontal.wav")
+      );
+      await soundManager.loadSound(
+        "clearRow",
+        require("../assets/sounds/happy_row_clear.wav")
+      );
+    };
+
+    initializeSounds();
+
+    return () => {
+      soundManager.cleanup();
+    };
+  }, []);
+
   const handleReset = useCallback(() => {
     const newBlock = randomBlock(); // Generate a new block
     const randomPositionReset = randomPosition(newBlock);
@@ -723,14 +723,13 @@ export default function HomeScreen() {
 
   const handleSound = async () => {
     if (isSoundOn) {
-      // If sound is being turned OFF, stop all currently playing sounds: INSTANTly
-      await stopMoveHorizontal();
-      await stopClearRowSound();
+      // If sound is being turned OFF, stop all currently playing sounds
+      await stopAllSounds(); // Changed from your old stop functions
     }
 
-    // Toggle sound state
     setIsSoundOn(!isSoundOn);
   };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Heading */}
