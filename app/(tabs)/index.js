@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   loadingText: {
-    color: "#fff",
+    color: "#000",
     fontSize: 20,
     marginBottom: 20,
   },

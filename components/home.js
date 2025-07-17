@@ -16,7 +16,7 @@ import { StatusBar } from "expo-status-bar";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSpeed } from "../context/speedContext"; // Import the speed context
-import soundManager from "../utils/sound-manager"; // Import the sound manager
+import { soundManager } from "../utils/sound-manager"; // Import the sound manager
 import Block from "./block";
 import BlockList from "./block-list";
 import Box from "./box";
@@ -152,9 +152,6 @@ export default function HomeScreen() {
 
   const [rotationStartTime, setRotationStartTime] = useState(null);
 
-  const moveHorizontalSoundRef = useRef(null);
-  const clearRowSoundRef = useRef(null);
-
   // Replace new sound functions:
   const playMoveHorizontal = async () => {
     if (!isSoundOn) return;
@@ -263,8 +260,7 @@ export default function HomeScreen() {
       "50": 20
     }
     */
-    console.log("-------Full rows detected:", fullRows);
-    console.log("****Row counts:", rowCounts);
+
     // Render Full row Dectection to fullRowsDetected for styling before clearing
     setFullRowDetected(fullRows);
     // Clear rows after animation
@@ -293,7 +289,6 @@ export default function HomeScreen() {
         const newSetTimeSpeed = timeSpeedTable.find(
           (set) => set.level === newLevelwCurrentSpeed
         );
-        console.log(newSetTimeSpeed);
 
         setTime(newSetTimeSpeed.time);
         currentTime.current = newSetTimeSpeed.time;
@@ -573,10 +568,6 @@ export default function HomeScreen() {
         // Add current block to placedBlocks and spawn new one
         setPlacedBlocks(newPlacedBlocks);
 
-        // Debug with placedBlocks
-        console.log("Placed blocks:  ");
-        newPlacedBlocks.map((block) => console.log("Blocks:", block));
-
         fetchNewBlock();
 
         return;
@@ -724,7 +715,7 @@ export default function HomeScreen() {
   const handleSound = async () => {
     if (isSoundOn) {
       // If sound is being turned OFF, stop all currently playing sounds
-      await stopAllSounds(); // Changed from your old stop functions
+      await soundManager.stopAllSounds(); // Changed from your old stop functions
     }
 
     setIsSoundOn(!isSoundOn);
