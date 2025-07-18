@@ -267,7 +267,7 @@ export default function HomeScreen() {
     setTimeout(() => {
       playHappyRowClear(); // Play sounds
       setFullRowDetected([]);
-    }, 500);
+    }, 700);
 
     // update score: with level relationship
     // Update score and level together
