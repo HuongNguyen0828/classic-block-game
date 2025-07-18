@@ -5,7 +5,7 @@ const Box = () => {
   return <View style={styles.box}></View>;
 };
 
-export default Box;
+export default React.memo(Box);
 
 const styles = StyleSheet.create({
   box: {

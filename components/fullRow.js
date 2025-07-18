@@ -1,3 +1,4 @@
+import React from "react";
 import { StyleSheet, View } from "react-native";
 
 const row = [];
@@ -17,7 +18,7 @@ const FullRow = () => {
   );
 };
 
-export default FullRow;
+export default React.memo(FullRow);
 
 const styles = StyleSheet.create({
   row: {

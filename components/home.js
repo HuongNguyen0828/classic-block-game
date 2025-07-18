@@ -691,7 +691,7 @@ export default function HomeScreen() {
       const timer = setTimeout(() => {
         playLevelUp(); // Play level up sound
         setIsLevelUp(false); // Reset after sound plays
-      }, 100); // Delay before playing sound (1s)
+      }, 200); // Delay before playing sound (200ms)
       return () => clearTimeout(timer); // Cleanup timer on unmount or when isLevelUp changes
     }
   }, [isLevelUp, playLevelUp]);
@@ -808,23 +808,16 @@ export default function HomeScreen() {
 
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
-            <View style={{ height: "30%" }}>
+            <View style={styles.scoreRecordArea}>
               <Text>Score: {score} </Text>
               <Text>Level: {level} </Text>
               <Text>Speed: {currentSpeed}</Text>
             </View>
-            <View style={{ height: "30%", alignItems: "center" }}>
+            <View style={styles.previewNext}>
               <Text>Preview Next</Text>
               <Block type={nextBlock} />
             </View>
-            <View
-              style={{
-                height: "40%",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "space-around",
-              }}
-            >
+            <View style={styles.statusIcons}>
               {isPaused ? (
                 <MaterialCommunityIcons name="human" size={30} color="black" />
               ) : (
@@ -865,13 +858,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           {/* Second row: Left - icons - Right */}
-          <View
-            style={{
-              flexDirection: "row",
-              width: "100%",
-              alignItems: "center",
-            }}
-          >
+          <View style={styles.movingButtonArea}>
             {/* Left */}
             <TouchableOpacity
               style={styles.leftRightButton}
@@ -1072,13 +1059,34 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "#D3D3D3",
   },
-  bottomHalfArea: { display: "flex" },
+  scoreRecordArea: {
+    height: "30%",
+  },
+  previewNext: {
+    height: "30%",
+    alignItems: "center",
+  },
+  statusIcons: {
+    height: "40%",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+
+  bottomHalfArea: {
+    display: "flex",
+  },
   settingArea: {
     width: width / 2,
     height: "30%",
     flexDirection: "row",
     gap: 5,
     // backgroundColor: "purple",
+    alignItems: "center",
+  },
+  movingButtonArea: {
+    flexDirection: "row",
+    width: "100%",
     alignItems: "center",
   },
   arrowArea: {
