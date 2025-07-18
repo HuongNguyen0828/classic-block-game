@@ -691,7 +691,7 @@ export default function HomeScreen() {
       const timer = setTimeout(() => {
         playLevelUp(); // Play level up sound
         setIsLevelUp(false); // Reset after sound plays
-      }, 200); // Delay before playing sound (200ms)
+      }, 300); // Delay before playing sound (300ms)
       return () => clearTimeout(timer); // Cleanup timer on unmount or when isLevelUp changes
     }
   }, [isLevelUp, playLevelUp]);
