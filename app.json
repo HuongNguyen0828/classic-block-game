@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "ca.helen.tetris",
-      "versionCode": 3, // Increment this for each release
+      "versionCode": 4, // Increment this for each release
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

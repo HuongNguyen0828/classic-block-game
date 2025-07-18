@@ -9,7 +9,7 @@ const BoxBlock = () => {
   );
 };
 
-export default BoxBlock;
+export default React.memo(BoxBlock);
 
 const styles = StyleSheet.create({
   block: {

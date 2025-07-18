@@ -19,7 +19,7 @@ import { useSpeed } from "../context/speedContext"; // Import the speed context
 import { soundManager } from "../utils/sound-manager"; // Import the sound manager
 import Block from "./block";
 import BlockList from "./block-list";
-import Box from "./box";
+import Grid from "./grid";
 import FullRow from "./fullRow";
 
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -104,15 +104,6 @@ const randomPosition = (block) => {
   return { x, y: 0 }; // Adjust the range based on your design
 };
 
-const boxes = [];
-
-for (let i = 0; i < 20; i++) {
-  boxes.push([]); // create a new row: 20 rows
-  for (let j = 0; j < 20; j++) {
-    boxes[i].push(1); // push 1 into each column of that row: 20 columns
-  }
-}
-
 export default function HomeScreen() {
   // Check if the screen is focused
   const isFocused = useIsFocused();
@@ -163,10 +154,10 @@ export default function HomeScreen() {
     if (!isSoundOn) return;
     await soundManager.playSound("clearRow");
   };
-  const playLevelUp = async () => {
+  const playLevelUp = useCallback(async () => {
     if (!isSoundOn) return;
     await soundManager.playSound("levelUp"); // Play sound for level-up
-  };
+  }, [isSoundOn]);
 
   const stopAllSounds = async () => {
     await soundManager.stopAllSounds();
@@ -760,16 +751,8 @@ export default function HomeScreen() {
         <View style={styles.mainPlayerYardwithScore}>
           {/* Playground */}
           <View style={styles.playground}>
-            <View>
-              {boxes.map((row, rowIndex) => (
-                <View key={rowIndex} style={{ flexDirection: "row" }}>
-                  {row.map((cell, cellIndex) => (
-                    <Box key={`${rowIndex}-${cellIndex}`} />
-                  ))}
-                  <Box />
-                </View>
-              ))}
-            </View>
+            {/* Render the grid of playGround */}
+            <Grid />
 
             {/* Render the settled down blocks */}
             {placedBlocks.map((item, index) => (
