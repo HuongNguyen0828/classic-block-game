@@ -1041,6 +1041,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#87CEEB",
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    paddingVertical: 10,
+    fontFamily: "Arial, sans-serif, Helvetica Neue",
   },
   heading: {
     justifyContent: "center",

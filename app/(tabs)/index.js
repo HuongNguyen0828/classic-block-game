@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "111",
     padding: 20,
+    fontFamily: "Arial",
   },
   header: {
     color: "#00ffc3",
