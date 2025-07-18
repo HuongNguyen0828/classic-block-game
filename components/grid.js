@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import { FlatList, StyleSheet, View } from "react-native";
 import Box from "./box";
 
 const boxes = [];
@@ -14,14 +14,19 @@ for (let i = 0; i < 20; i++) {
 const Grid = () => {
   return (
     <View>
-      {boxes.map((row, rowIndex) => (
-        <View key={rowIndex} style={styles.row}>
-          {row.map((cell, cellIndex) => (
-            <Box key={`${rowIndex}-${cellIndex}`} />
-          ))}
-          <Box />
-        </View>
-      ))}
+      {/* Using FlatList to render the grid: React component for large dynamic grids*/}
+      <FlatList
+        data={boxes}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <View key={index} style={styles.row}>
+            {item.map((cell, cellIndex) => (
+              <Box key={`${index}-${cellIndex}`} />
+            ))}
+            <Box />
+          </View>
+        )}
+      />
     </View>
   );
 };

@@ -335,7 +335,11 @@ export default function HomeScreen() {
 
         return newBlock;
       })
-      .filter((block) => block.type.length !== 0); // remove empty block
+      .filter(
+        (block) =>
+          block.type.length > 0 &&
+          block.type.some((row) => row.some((cell) => cell === 1))
+      ); // remove empty block and blocks with no filled cells
 
     // Set the new placed blocks after shifting down
     setTimeout(() => {
