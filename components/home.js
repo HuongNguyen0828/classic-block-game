@@ -132,6 +132,7 @@ export default function HomeScreen() {
   const [isMovingRight, setIsMovingRight] = useState(false);
   const [isLongPressDown, setIsLongPressDown] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
+  const [isLevelUp, setIsLevelUp] = useState(false); // State to track if the level is up
 
   // Set the next block position
   const [nextBlock, setNextBlock] = useState(randomBlock()); // Set initial next block
@@ -283,10 +284,9 @@ export default function HomeScreen() {
       // Update level  on new score: Must be greater than current level and within the bounds of timeSpeedTable
       if ((newLevel > level) & (newLevel <= timeSpeedTable.length)) {
         // Play level up sound
-        setTimeout(() => {
-          playLevelUp();
-          setLevel(newLevel);
-        }, 500); // Play sound after clearing rows
+
+        setIsLevelUp(true); // Set isLevelUp to true to trigger any UI changes LEVEL UP word
+        setLevel(newLevel);
 
         // Update and time based on currentSpeed, find level. CANNOT directly update currentSpeed because of MUST NOT call state-updating functions while rendering
         const levelwCurrentSpeed = timeSpeedTable.find(
@@ -305,10 +305,10 @@ export default function HomeScreen() {
         // Reset trippleScore to 1 after scoring
         setTripleScore(1);
       }
-
       return newScore;
     });
 
+    // Update placedBlocks to remove full rows
     const newPlacedBlocks = placedBlocks.map((block) => {
       const { type, position } = block;
       const newType = type.filter((_, rIdx) => {
@@ -350,7 +350,7 @@ export default function HomeScreen() {
     setTimeout(() => {
       setPlacedBlocks(newPlacedBlocksShiftDown); // Update the placed blocks with the new blocks
     }, 500);
-  }, [placedBlocks, getAllFilledCells, tripleScore, currentSpeed, level]);
+  }, [placedBlocks, getAllFilledCells, tripleScore, currentSpeed]);
 
   const collisionDetection = useCallback(
     (block, position) => {
@@ -690,6 +690,17 @@ export default function HomeScreen() {
     };
   }, []);
 
+  // For level up animation
+  useEffect(() => {
+    if (isLevelUp) {
+      const timer = setTimeout(() => {
+        playLevelUp(); // Play level up sound
+        setIsLevelUp(false); // Reset after sound plays
+      }, 1000); // Delay before playing sound (1s)
+      return () => clearTimeout(timer); // Cleanup timer on unmount or when isLevelUp changes
+    }
+  }, [isLevelUp, playLevelUp]);
+
   const handleReset = useCallback(() => {
     const newBlock = randomBlock(); // Generate a new block
     const randomPositionReset = randomPosition(newBlock);
@@ -786,6 +797,13 @@ export default function HomeScreen() {
                 <FullRow />
               </View>
             ))}
+
+            {/* Level Up Animation */}
+            {isLevelUp && (
+              <View style={styles.levelUpContainer}>
+                <Text style={styles.levelUpText}>Level Up!</Text>
+              </View>
+            )}
 
             {/* Rendering Current Block */}
             {currentBlock && (
@@ -1196,5 +1214,24 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.5,
     justifyContent: "center",
+  },
+
+  levelUpContainer: {
+    position: "absolute",
+    top: playGroundHeight / 2 - 50,
+    left: playGroundWidth / 2 - 50,
+    width: 100,
+    height: 100,
+    backgroundColor: "rgba(255, 255, 0, 0.8)", // Semi-transparent yellow
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    zIndex: 1,
+  },
+  levelUpText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#000",
+    textAlign: "center",
   },
 });
