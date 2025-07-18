@@ -650,7 +650,7 @@ export default function HomeScreen() {
 
     const interval = setInterval(() => {
       moveLeft();
-    }, 50); // Adjust speed (ms) for responsiveness
+    }, 30); // Adjust speed (ms) for responsiveness
 
     return () => clearInterval(interval);
   }, [isMovingLeft, isPaused, isGameOver, moveLeft]);
@@ -660,7 +660,7 @@ export default function HomeScreen() {
     if (!isMovingRight || isPaused || isGameOver) return;
     const interval = setInterval(() => {
       moveRight();
-    }, 50); // Same as left for consistency
+    }, 30); // Same as left for consistency
 
     return () => clearInterval(interval);
   }, [isMovingRight, isPaused, isGameOver, moveRight]);
@@ -696,7 +696,7 @@ export default function HomeScreen() {
       const timer = setTimeout(() => {
         playLevelUp(); // Play level up sound
         setIsLevelUp(false); // Reset after sound plays
-      }, 1000); // Delay before playing sound (1s)
+      }, 100); // Delay before playing sound (1s)
       return () => clearTimeout(timer); // Cleanup timer on unmount or when isLevelUp changes
     }
   }, [isLevelUp, playLevelUp]);
