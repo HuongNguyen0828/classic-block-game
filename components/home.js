@@ -19,8 +19,8 @@ import { useSpeed } from "../context/speedContext"; // Import the speed context
 import { soundManager } from "../utils/sound-manager"; // Import the sound manager
 import Block from "./block";
 import BlockList from "./block-list";
-import Grid from "./grid";
 import FullRow from "./fullRow";
+import Grid from "./grid";
 
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -870,21 +870,7 @@ export default function HomeScreen() {
           >
             {/* Left */}
             <TouchableOpacity
-              style={{
-                height: "60%",
-                width: "30%",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#FFDD00",
-                borderRadius: 60,
-                shadowOffset: {
-                  width: 1,
-                  height: 1,
-                },
-                shadowOpacity: 0.5,
-                shadowRadius: 2,
-                elevation: 5,
-              }}
+              style={styles.leftRightButton}
               onPress={() => {
                 // Always moveLeft
                 moveLeft();
@@ -909,30 +895,9 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             {/* Icon */}
-            <View
-              style={{
-                width: "40%",
-                // backgroundColor: "#D3D3D3",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
+            <View style={styles.arrowIconArea}>
               <AntDesign name="caretup" size={24} color="black" />
-              <View
-                style={{
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  gap: "25%",
-                  shadowOffset: {
-                    width: 1,
-                    height: 2,
-                  },
-                  shadowOpacity: 0.5,
-                  shadowRadius: 3.84,
-                  elevation: 5,
-                }}
-              >
+              <View style={styles.arrowLeftRight}>
                 <AntDesign name="caretleft" size={24} color="black" />
                 <AntDesign name="caretright" size={24} color="black" />
               </View>
@@ -941,21 +906,7 @@ export default function HomeScreen() {
 
             {/* Right */}
             <TouchableOpacity
-              style={{
-                height: "60%",
-                width: "30%",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#FFDD00",
-                borderRadius: 60,
-                shadowOffset: {
-                  width: 1,
-                  height: 2,
-                },
-                shadowOpacity: 0.5,
-                shadowRadius: 3.84,
-                elevation: 5,
-              }}
+              style={styles.leftRightButton}
               onPress={() => {
                 //Always move Right
                 moveRight();
@@ -992,7 +943,7 @@ export default function HomeScreen() {
         </View>
         {/* Close Arrow Area */}
         {/* Setting: Pause, Sound, Reset */}
-        <View style={{ display: "flex" }}>
+        <View style={styles.bottomHalfArea}>
           <View style={styles.settingArea}>
             <TouchableOpacity
               style={styles.secondaryButton}
@@ -1117,6 +1068,7 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "#D3D3D3",
   },
+  bottomHalfArea: { display: "flex" },
   settingArea: {
     width: width / 2,
     height: "30%",
@@ -1133,6 +1085,24 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
   },
+  arrowIconArea: {
+    width: "40%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  arrowLeftRight: {
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    gap: "25%",
+    shadowOffset: {
+      width: 1,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
   button: {
     width: "35%",
     height: "20%",
@@ -1140,6 +1110,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 50,
+    shadowOffset: {
+      width: 1,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  leftRightButton: {
+    height: "60%",
+    width: "30%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFDD00",
+    borderRadius: 60,
     shadowOffset: {
       width: 1,
       height: 2,

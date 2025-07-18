@@ -6,7 +6,7 @@ const Block = ({ type }) => {
     <View>
       {type.map((row, rowIndex) => (
         // View for each row in the block type
-        <View key={rowIndex} style={{ flexDirection: "row" }}>
+        <View key={rowIndex} style={styles.row}>
           {row.map((cell, cellIndex) =>
             cell === 1 ? (
               <BoxBlock key={`${rowIndex}-${cellIndex}`} />
@@ -15,7 +15,7 @@ const Block = ({ type }) => {
                 // Empty view for empty cells
                 <View
                   key={`${rowIndex}-${cellIndex}`}
-                  style={{ width: 10, height: 10 }}
+                  style={styles.emptyCell}
                 />
               )
             )
@@ -29,5 +29,11 @@ const Block = ({ type }) => {
 export default Block;
 
 const styles = StyleSheet.create({
-  blockTypes: {},
+  row: {
+    flexDirection: "row",
+  },
+  emptyCell: {
+    width: 10,
+    height: 10,
+  },
 });
