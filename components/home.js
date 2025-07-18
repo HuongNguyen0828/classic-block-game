@@ -162,6 +162,10 @@ export default function HomeScreen() {
     if (!isSoundOn) return;
     await soundManager.playSound("clearRow");
   };
+  const playLevelUp = async () => {
+    if (!isSoundOn) return;
+    await soundManager.playSound("levelUp"); // Play sound for level-up
+  };
 
   const stopAllSounds = async () => {
     await soundManager.stopAllSounds();
@@ -278,7 +282,11 @@ export default function HomeScreen() {
 
       // Update level  on new score: Must be greater than current level and within the bounds of timeSpeedTable
       if ((newLevel > level) & (newLevel <= timeSpeedTable.length)) {
-        setLevel(newLevel);
+        // Play level up sound
+        setTimeout(() => {
+          playLevelUp();
+          setLevel(newLevel);
+        }, 500); // Play sound after clearing rows
 
         // Update and time based on currentSpeed, find level. CANNOT directly update currentSpeed because of MUST NOT call state-updating functions while rendering
         const levelwCurrentSpeed = timeSpeedTable.find(
@@ -305,7 +313,7 @@ export default function HomeScreen() {
       const { type, position } = block;
       const newType = type.filter((_, rIdx) => {
         const y = position.y + rIdx * 10;
-        return !fullRows.includes(y);
+        return !fullRows.includes(y); // remove rows that are in fullRows
       });
 
       return {
@@ -336,7 +344,7 @@ export default function HomeScreen() {
 
         return newBlock;
       })
-      .filter((block) => block.type.length !== 0); // remove block empty
+      .filter((block) => block.type.length !== 0); // remove empty block
 
     // Set the new placed blocks after shifting down
     setTimeout(() => {
@@ -603,8 +611,7 @@ export default function HomeScreen() {
   // Use Effect for fullRowDection
   useEffect(() => {
     if (placedBlocks.length === 0) return;
-
-    fullRowDetection();
+    fullRowDetection(); // Check for full rows after placing blocks
   }, [placedBlocks, fullRowDetection]);
 
   useEffect(() => {
@@ -668,7 +675,11 @@ export default function HomeScreen() {
       );
       await soundManager.loadSound(
         "clearRow",
-        require("../assets/sounds/happy_row_clear.wav")
+        require("../assets/sounds/clearRow.wav")
+      );
+      await soundManager.loadSound(
+        "levelUp",
+        require("../assets/sounds/levelUp.wav")
       );
     };
 
