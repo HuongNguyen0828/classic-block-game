@@ -809,12 +809,12 @@ export default function HomeScreen() {
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
             <View style={styles.scoreRecordArea}>
-              <Text>Score: {score} </Text>
-              <Text>Level: {level} </Text>
-              <Text>Speed: {currentSpeed}</Text>
+              <Text style={styles.text}>Score: {score} </Text>
+              <Text style={styles.text}>Level: {level}</Text>
+              <Text style={styles.text}>Speed: {currentSpeed}</Text>
             </View>
             <View style={styles.previewNext}>
-              <Text>Preview Next</Text>
+              <Text style={styles.text}>Preview Next</Text>
               <Block type={nextBlock} />
             </View>
             <View style={styles.statusIcons}>
@@ -1062,12 +1062,17 @@ const styles = StyleSheet.create({
   scoreRecordArea: {
     height: "30%",
   },
+  text: {
+    fontSize: 16,
+    color: "#333",
+    fontFamily: "Arial, sans-serif, Helvetica Neue",
+  },
   previewNext: {
-    height: "30%",
+    height: "40%",
     alignItems: "center",
   },
   statusIcons: {
-    height: "40%",
+    height: "30%",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "space-around",
