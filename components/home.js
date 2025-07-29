@@ -742,7 +742,9 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       {/* Heading */}
       <View style={{ height: 30 }}>
-        <Text style={styles.heading}>Block Game</Text>
+        <Text allowFontScaling={false} style={styles.heading}>
+          Block Game
+        </Text>
       </View>
       {/* Main player section */}
       <View style={styles.mainPlayerSection}>
@@ -809,9 +811,15 @@ export default function HomeScreen() {
           {/* Score and record section */}
           <View style={styles.scoreRecord}>
             <View style={styles.scoreRecordArea}>
-              <Text style={styles.text}>Score: {score} </Text>
-              <Text style={styles.text}>Level: {level}</Text>
-              <Text style={styles.text}>Speed: {currentSpeed}</Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Score: {score}{" "}
+              </Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Level: {level}
+              </Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Speed: {currentSpeed}
+              </Text>
             </View>
             <View style={styles.previewNext}>
               <Text style={styles.text}>Preview Next</Text>
@@ -918,7 +926,9 @@ export default function HomeScreen() {
               onPressIn={() => setIsMovingRight(true)}
               onPressOut={() => setIsMovingRight(false)}
             >
-              <Text>Right</Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Right
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -929,7 +939,9 @@ export default function HomeScreen() {
             onPressIn={() => setIsLongPressDown(true)}
             onPressOut={() => setIsLongPressDown(false)}
           >
-            <Text>Down</Text>
+            <Text allowFontScaling={false} style={styles.text}>
+              Down
+            </Text>
           </TouchableOpacity>
         </View>
         {/* Close Arrow Area */}
@@ -940,21 +952,27 @@ export default function HomeScreen() {
               style={styles.secondaryButton}
               onPress={handlePause}
             >
-              <Text>Pause</Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Pause
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.secondaryButton}
               onPress={handleSound}
             >
-              <Text>Sound</Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Sound
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.secondaryButton, styles.reset]}
               onPress={handleReset}
             >
-              <Text>Reset</Text>
+              <Text allowFontScaling={false} style={styles.text}>
+                Reset
+              </Text>
             </TouchableOpacity>
           </View>
           <View>
@@ -977,7 +995,12 @@ export default function HomeScreen() {
                 }
               }}
             >
-              <Text style={{ textAlign: "center" }}>Rotate</Text>
+              <Text
+                allowFontScaling={false}
+                style={[styles.text, styles.rotateText]}
+              >
+                Rotate
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1006,7 +1029,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   mainPlayerSection: {
-    flex: 1,
+    flex: 0.95,
     width: "100%",
     gap: 2,
     flexDirection: "row",
@@ -1066,6 +1089,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     fontFamily: "Arial, sans-serif, Helvetica Neue",
+  },
+  rotateText: {
+    textAlign: "center",
   },
   previewNext: {
     height: "40%",
